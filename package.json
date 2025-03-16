@@ -1,0 +1,125 @@
+{
+  "name": "repo2prompt",
+  "publisher": "gziz",
+  "displayName": "Repo 2 Prompt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gziz/repo2prompt"
+  },
+  "homepage": "https://repo2prompt.gziz.io",
+  "description": "Export your entire codebase or specific files into a single LLM-friendly text",
+  "version": "0.0.1",
+  "icon": "resources/icon.png",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "repo2prompt.openConfigPage",
+        "category": "",
+        "title": "Open Settings",
+        "icon": "$(gear)",
+        "group": "navigation"
+      },
+      {
+        "command": "repo2prompt.openEditorView",
+        "category": "",
+        "title": "Open Editor View",
+        "icon": "$(pencil)",
+        "group": "navigation"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "repo2prompt",
+          "title": "Repo 2 Prompt",
+          "icon": "$(pencil)"
+        }
+      ]
+    },
+    "views": {
+      "repo2prompt": [
+        {
+          "type": "webview",
+          "id": "repo2promptView",
+          "name": "Repo 2 Prompt"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "repo2prompt.openConfigPage",
+          "group": "navigation",
+          "when": "view == repo2promptView"
+        },
+        {
+          "command": "repo2prompt.openEditorView",
+          "group": "navigation",
+          "when": "view == repo2promptView"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Repo 2 Prompt",
+      "properties": {
+        "repo2prompt.excludeHiddenDirectories": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to exclude hidden directories (starting with '.*') from search results"
+        },
+        "repo2prompt.maxFileSizeKB": {
+          "type": "number",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 1000,
+          "description": "Maximum file size (in KB) to include in prompts. Files larger than this will be excluded to avoid exceeding token limits."
+        },
+        "repo2prompt.promptTemplate": {
+          "type": "object",
+          "default": null,
+          "description": "Template for formatting prompts. A default template is provided by the extension."
+        },
+        "repo2prompt.fileTemplate": {
+          "type": "object",
+          "default": null,
+          "description": "Template for formatting individual files in the prompt. This controls how each file is displayed within the fileContents section."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "install:all": "npm install && cd webview-ui && npm install",
+    "start:webview": "cd webview-ui && npm run start",
+    "build:webview": "cd webview-ui && npm run build",
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.2.0",
+    "@types/glob": "^7.1.3",
+    "@types/node": "^12.11.7",
+    "@types/vscode": "^1.46.0",
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
+    "@typescript-eslint/parser": "^4.14.1",
+    "eslint": "^7.19.0",
+    "glob": "^7.1.6",
+    "prettier": "^2.2.1",
+    "typescript": "^4.9.3",
+    "vscode-test": "^1.5.0"
+  },
+  "dependencies": {
+    "dompurify": "^3.2.4",
+    "fast-glob": "^3.3.3",
+    "seti-file-icons": "^0.0.8"
+  }
+}

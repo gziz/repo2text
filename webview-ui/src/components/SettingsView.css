@@ -1,0 +1,194 @@
+.settings-container {
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  overflow-y: auto;
+}
+
+.settings-group h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+}
+
+.settings-group {
+  position: relative;
+}
+
+.reset-icon-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  color: var(--vscode-foreground);
+}
+
+.reset-icon-button:hover {
+  opacity: 1;
+  background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+/* Tooltip styling */
+.tooltip-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.tooltip-container .tooltip-text {
+  visibility: hidden;
+  width: 180px;
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  text-align: center;
+  border-radius: 4px;
+  padding: 6px 10px;
+  position: absolute;
+  z-index: 1;
+  top: 125%;
+  right: 0;
+  margin-left: -60px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  border: 1px solid var(--vscode-widget-border);
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.settings-item-row {
+  display: flex;
+  margin-bottom: 20px;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.settings-item-column {
+  display: flex;
+  margin-bottom: 20px;
+  flex-direction: column;
+}
+
+.settings-item-label-container {
+  margin-right: 10px;
+}
+
+.settings-item-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--vscode-foreground);
+}
+
+.settings-item-description {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+/* Input containers for different input types */
+.input-container {
+  display: flex;
+  align-items: center;
+}
+
+.settings-item-input input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.settings-item-input input[type="number"] {
+  max-width: 100px;
+  min-width: 50px;
+  height: 28px;
+  padding: 0 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: var(--default-border-radius);
+}
+
+/* Text input styling */
+.settings-item-input input[type="text"] {
+  height: 28px;
+  padding: 0 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: var(--default-border-radius);
+}
+
+/* Select styling */
+.settings-item-input select {
+  height: 28px;
+  padding: 0 8px;
+  background-color: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: var(--default-border-radius);
+}
+
+/* Focus styles handled by common styles in App.css */
+
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.save-button {
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: var(--default-border-radius);
+  cursor: pointer;
+  width: 100%;
+}
+
+.save-button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+/* Loading spinner styles */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--vscode-progressBar-background);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

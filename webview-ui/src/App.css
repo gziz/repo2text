@@ -1,0 +1,104 @@
+/* VSCode theme variables - centralized definition for all components */
+:root {
+  /* Core theme variables */
+  --vscode-foreground: var(--vscode-editor-foreground);
+  --vscode-background: var(--vscode-editor-background);
+  
+  /* Badge and button styles */
+  --vscode-badge-background: var(--vscode-button-background);
+  --vscode-badge-foreground: var(--vscode-button-foreground);
+  
+  /* Input styles */
+  --vscode-input-background: var(--vscode-input-background);
+  --vscode-input-foreground: var(--vscode-input-foreground);
+  --vscode-input-border: var(--vscode-input-border);
+  --vscode-input-border-focus: var(--vscode-focusBorder);
+  
+  /* Selection styles */
+  --vscode-list-active-background: var(--vscode-list-activeSelectionBackground);
+  --vscode-list-active-foreground: var(--vscode-list-activeSelectionForeground);
+  
+  /* UI component styles */
+  --vscode-quick-input-background: var(--vscode-dropdown-background);
+  --vscode-command-center-active-border: var(--vscode-focusBorder);
+  --vscode-command-center-inactive-border: var(--vscode-input-border);
+  
+  /* Common colors */
+  --light-gray: #646464;
+  
+  /* Common measurements */
+  --default-border-radius: 4px;
+  
+  /* Additional VSCode theme variables used by components */
+  --vsc-focus-border: var(--vscode-focusBorder, #1bbe84);
+  --vsc-editor-background: var(--vscode-editor-background, var(--vscode-sideBar-background, rgb(30, 30, 30)));
+  --vsc-background-hover-light: rgba(255, 255, 255, 0.08);
+}
+
+/* Base styles */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  color: var(--vscode-foreground);
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* To override the default `-webkit-focus-ring-color` that is an ugly orange */
+*:focus {
+  outline: none;
+}
+
+/* App container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* Scrollbar utilities */
+.thin-scrollbar {
+  scrollbar-width: thin;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+/* Common form element styles used across the application */
+input, select, button {
+  font-family: inherit;
+}
+
+input:focus,
+select:focus,
+button:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+/* Layout components */
+.tiptap-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+}

@@ -1,0 +1,286 @@
+import * as vscode from "vscode";
+import { WorkspaceFileManager } from "./WorkspaceFileManager";
+import { PromptGenerator } from "./PromptGenerator";
+import { DEFAULT_PROMPT_TEMPLATE, DEFAULT_FILE_TEMPLATE } from './defaultTemplate';
+
+/**
+ * Handles communication between the webview and VSCode extension
+ */
+export class WebviewMessageHandler {
+  private _webviewView: vscode.WebviewView;
+  private _fileManager: WorkspaceFileManager;
+  private _promptGenerator: PromptGenerator;
+  private _refreshCallback: () => Promise<void>;
+  private _messageListener?: vscode.Disposable;
+  private _activeStatusBarMessages: vscode.Disposable[] = [];
+
+  constructor(
+    webviewView: vscode.WebviewView,
+    fileManager: WorkspaceFileManager,
+    promptGenerator: PromptGenerator,
+    refreshCallback: () => Promise<void>
+  ) {
+    this._webviewView = webviewView;
+    this._fileManager = fileManager;
+    this._promptGenerator = promptGenerator;
+    this._refreshCallback = refreshCallback;
+
+    // Set up event listeners
+    this._setupMessageListeners();
+  }
+
+  // Set up event listeners for messages from the webview
+  private _setupMessageListeners(): void {
+    this._messageListener = this._webviewView.webview.onDidReceiveMessage(async (message) => {
+      switch (message.command) {
+        case "initialize":
+          // Handle initial data request in one go
+          await this._refreshCallback();
+          // Send templates during initialization
+          await this._handleGetSettingsRequest();
+          break;
+          
+        case "getWorkspaceFiles":
+          // Only send workspace files without refreshing everything
+          this._sendWorkspaceFiles();
+          break;
+          
+        case "getWorkspaceFolders":
+          // Only send workspace folders without refreshing everything
+          this._sendWorkspaceFolders();
+          break;
+          
+        case "readFile":
+          await this._handleReadFileRequest(message.path);
+          break;
+          
+        case "copyWithContext":
+          await this._handleCopyWithContextRequest(message.text, message.mentions);
+          break;
+          
+        case "copyText":
+          await this._handleCopyTextRequest(message.text);
+          break;
+          
+        case "showMessage":
+          this._handleShowMessageRequest(message.text);
+          break;
+          
+        case "saveSettings":
+          await this._handleSaveSettingsRequest(message.settings);
+          break;
+          
+        case "getSettings":
+          await this._handleGetSettingsRequest();
+          break;
+          
+        case "getDefaultSettings":
+          await this._handleGetDefaultSettingsRequest();
+          break;
+      }
+    });
+  }
+
+  // Send only workspace files
+  private async _sendWorkspaceFiles(): Promise<void> {
+    const files = await this._fileManager.getWorkspaceFiles();
+    this._webviewView.webview.postMessage({
+      command: "workspaceFiles",
+      files
+    });
+  }
+
+  // Send only workspace folders
+  private async _sendWorkspaceFolders(): Promise<void> {
+    const folders = await this._fileManager.getWorkspaceFolders();
+    this._webviewView.webview.postMessage({
+      command: "workspaceFolders",
+      folders
+    });
+  }
+
+  // Handle a request to read a file's contents
+  private async _handleReadFileRequest(filePath: string): Promise<void> {
+    try {
+      const content = await this._fileManager.readFile(filePath);
+      this._webviewView.webview.postMessage({ 
+        command: "fileContent", 
+        path: filePath, 
+        content 
+      });
+    } catch (error) {
+      console.error(`Error reading file ${filePath}:`, error);
+      this._webviewView.webview.postMessage({ 
+        command: "fileContent", 
+        path: filePath, 
+        content: "Error reading file content" 
+      });
+    }
+  }
+
+  // Handle a request to copy prompt with context
+  private async _handleCopyWithContextRequest(userText: string, mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>): Promise<void> {
+    try {
+      const prompt = await this._promptGenerator.generatePrompt(userText, mentions);
+      await vscode.env.clipboard.writeText(prompt);
+      const statusBarMessage = vscode.window.setStatusBarMessage("Prompt copied to clipboard!");
+      this._activeStatusBarMessages.push(statusBarMessage);
+      setTimeout(() => {
+        statusBarMessage.dispose();
+        // Remove from active messages after disposal
+        const index = this._activeStatusBarMessages.indexOf(statusBarMessage);
+        if (index > -1) {
+          this._activeStatusBarMessages.splice(index, 1);
+        }
+      }, 3000);
+
+    } catch (error) {
+      vscode.window.showErrorMessage("Failed to generate prompt: " + (error as Error).message);
+    }
+  }
+
+  // Handle a request to copy text to clipboard
+  private async _handleCopyTextRequest(text: string): Promise<void> {
+    try {
+      await vscode.env.clipboard.writeText(text);
+      const statusBarMessage = vscode.window.setStatusBarMessage("Prompt copied to clipboard!");
+      this._activeStatusBarMessages.push(statusBarMessage);
+      setTimeout(() => {
+        statusBarMessage.dispose();
+        // Remove from active messages after disposal
+        const index = this._activeStatusBarMessages.indexOf(statusBarMessage);
+        if (index > -1) {
+          this._activeStatusBarMessages.splice(index, 1);
+        }
+      }, 3000);
+
+    } catch (error) {
+      vscode.window.showErrorMessage("Failed to copy text: " + (error as Error).message);
+    }
+  }
+
+  // Handle a request to show a message
+  private _handleShowMessageRequest(text: string): void {
+    vscode.window.showInformationMessage(text);
+  }
+
+  // Handle a request to save settings
+  private async _handleSaveSettingsRequest(settings: any): Promise<void> {
+    try {
+      // Save the setting to its proper configuration key
+      const config = vscode.workspace.getConfiguration('repo2prompt');
+      
+      if (settings.excludeHiddenDirectories !== undefined) {
+        await config.update('excludeHiddenDirectories', settings.excludeHiddenDirectories, vscode.ConfigurationTarget.Global);
+      }
+      
+      if (settings.maxFileSizeKB !== undefined) {
+        await config.update('maxFileSizeKB', settings.maxFileSizeKB, vscode.ConfigurationTarget.Global);
+      }
+      
+      if (settings.promptTemplate !== undefined) {
+        await config.update('promptTemplate', settings.promptTemplate, vscode.ConfigurationTarget.Global);
+      }
+      
+      if (settings.fileTemplate !== undefined) {
+        await config.update('fileTemplate', settings.fileTemplate, vscode.ConfigurationTarget.Global);
+      }
+      
+      this._webviewView.webview.postMessage({ 
+        command: "settingsSaved",
+        success: true
+      });
+      
+      vscode.window.showInformationMessage("Settings saved successfully!");
+    } catch (error) {
+      console.error(`Error saving settings:`, error);
+      this._webviewView.webview.postMessage({ 
+        command: "settingsSaved",
+        success: false,
+        error: (error as Error).message
+      });
+      
+      vscode.window.showErrorMessage("Failed to save settings: " + (error as Error).message);
+    }
+  }
+
+  // Handle a request to get the current settings
+  private async _handleGetSettingsRequest(): Promise<void> {
+    try {
+      // Get the setting from the configuration
+      const config = vscode.workspace.getConfiguration('repo2prompt');
+      
+      const promptTemplate = config.get('promptTemplate');
+      const fileTemplate = config.get('fileTemplate');
+      
+      const settings = {
+        excludeHiddenDirectories: config.get('excludeHiddenDirectories'),
+        maxFileSizeKB: config.get('maxFileSizeKB', 100),
+        // Check if the template is an empty object or missing
+        promptTemplate: (!promptTemplate || Object.keys(promptTemplate).length === 0) ? 
+                        DEFAULT_PROMPT_TEMPLATE : promptTemplate,
+        fileTemplate: (!fileTemplate || Object.keys(fileTemplate).length === 0) ? 
+                      DEFAULT_FILE_TEMPLATE : fileTemplate
+      };
+      
+      this._webviewView.webview.postMessage({ 
+        command: "settings",
+        settings: settings
+      });
+    } catch (error) {
+      console.error(`Error getting settings:`, error);
+      this._webviewView.webview.postMessage({ 
+        command: "settings",
+        error: (error as Error).message
+      });
+      
+      vscode.window.showErrorMessage("Failed to get settings: " + (error as Error).message);
+    }
+  }
+
+  // Handle a request to get the default settings
+  private async _handleGetDefaultSettingsRequest(): Promise<void> {
+    try {
+      // Create default settings object
+      const defaultSettings = {
+        excludeHiddenDirectories: true,
+        maxFileSizeKB: 100,
+        promptTemplate: DEFAULT_PROMPT_TEMPLATE,
+        fileTemplate: DEFAULT_FILE_TEMPLATE
+      };
+      
+      this._webviewView.webview.postMessage({ 
+        command: "defaultSettings",
+        settings: defaultSettings
+      });
+    } catch (error) {
+      console.error(`Error getting default settings:`, error);
+      this._webviewView.webview.postMessage({ 
+        command: "defaultSettings",
+        error: (error as Error).message
+      });
+      
+      vscode.window.showErrorMessage("Failed to get default settings: " + (error as Error).message);
+    }
+  }
+
+  // Send data to the webview
+  public postMessage(message: any): Thenable<boolean> {
+    return this._webviewView.webview.postMessage(message);
+  }
+
+  // Dispose of all resources
+  public dispose(): void {
+    // Dispose of message listener
+    if (this._messageListener) {
+      this._messageListener.dispose();
+      this._messageListener = undefined;
+    }
+    
+    // Dispose of any active status bar messages
+    for (const message of this._activeStatusBarMessages) {
+      message.dispose();
+    }
+    this._activeStatusBarMessages = [];
+  }
+} 
