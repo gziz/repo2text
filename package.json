@@ -1,7 +1,7 @@
 {
   "name": "repo2prompt",
   "publisher": "gziz",
-  "displayName": "Repo 2 Prompt",
+  "displayName": "Repo2Prompt",
   "repository": {
     "type": "git",
     "url": "https://github.com/gziz/repo2prompt"
@@ -10,7 +10,7 @@
   "description": "Export your entire codebase or specific files into a single LLM-friendly text",
   "version": "0.0.1",
   "license": "MIT",
-  "icon": "resources/icon.png",
+  "icon": "resources/icon_for_store.png",
   "engines": {
     "vscode": "^1.75.0"
   },
@@ -39,8 +39,8 @@
       "activitybar": [
         {
           "id": "repo2prompt",
-          "title": "Repo 2 Prompt",
-          "icon": "$(pencil)"
+          "title": "Repo2Prompt",
+          "icon": "resources/icon_for_activitybar.png"
         }
       ]
     },
@@ -68,7 +68,7 @@
       ]
     },
     "configuration": {
-      "title": "Repo 2 Prompt",
+      "title": "Repo2Prompt",
       "properties": {
         "repo2prompt.excludeHiddenDirectories": {
           "type": "boolean",
