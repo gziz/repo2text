@@ -97,8 +97,35 @@ button:focus {
 }
 
 .editor-container {
-  flex-grow: 1;
+  /* flex-grow: 1; */
   display: flex;
   flex-direction: column;
   padding: 8px;
+}
+
+/* New styles for the editor and tree view layout */
+.editor-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tree-view-section {
+  margin-top: 16px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: var(--default-border-radius);
+  background-color: var(--vscode-sideBar-background);
+  height: 400px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tree-view-title {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: normal;
+  background-color: var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background));
+  border-bottom: 1px solid var(--vscode-panel-border);
 }

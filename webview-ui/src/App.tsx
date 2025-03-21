@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import SettingsView from "./components/SettingsView";
 import TipTapEditor from "./components/TipTapEditor";
+import TreeView from "./components/TreeView";
 import { Settings, View, WorkspaceFile, WorkspaceFolder } from "./types/types";
 import { vscode } from "./utilities/vscode";
 
@@ -11,6 +12,7 @@ function App() {
   const [editorContent, setEditorContent] = useState<string>("");
   const [currentView, setCurrentView] = useState<View>("editor");
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [selectedItems, setSelectedItems] = useState<(WorkspaceFile | WorkspaceFolder)[]>([]);
 
   useEffect(() => {
     // Make a single initialization request instead of multiple requestsd
@@ -58,6 +60,11 @@ function App() {
     setEditorContent(html);
   };
 
+  // Handle selection change in tree view
+  const handleSelectionChange = (items: (WorkspaceFile | WorkspaceFolder)[]) => {
+    setSelectedItems(items);
+  };
+
   // Handle back to editor navigation
   const handleBackToEditor = () => {
     setCurrentView("editor");
@@ -98,12 +105,23 @@ function App() {
         );
       case "editor":
         return (
-          <TipTapEditor
-            workspaceFiles={files}
-            workspaceFolders={folders}
-            onUpdate={handleEditorUpdate}
-            initialContent={editorContent}
-          />
+          <div className="editor-section">
+            <TipTapEditor
+              workspaceFiles={files}
+              workspaceFolders={folders}
+              onUpdate={handleEditorUpdate}
+              initialContent={editorContent}
+            />
+            <div className="tree-view-section">
+              <h3 className="tree-view-title">File Explorer</h3>
+              <TreeView
+                workspaceFiles={files}
+                workspaceFolders={folders}
+                selectedItems={selectedItems}
+                onSelectionChange={handleSelectionChange}
+              />
+            </div>
+          </div>
         );
       default:
         return null;

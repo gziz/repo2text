@@ -94,22 +94,22 @@ export class WorkspaceFileManager {
       const rootFolder = workspaceFolders[0];
       
       // Add two entries for the root folder with different names
-      folders.unshift(
-        {
-          uri: rootFolder.uri.toString(),
-          path: rootFolder.uri.fsPath,
-          name: "root",
-          relativePath: "./"
-        }
-      );
-      folders.push(
-        {
-          uri: rootFolder.uri.toString(),
-          path: rootFolder.uri.fsPath,
-          name: "./",
-          relativePath: "./"
-        }
-      );9
+      // folders.unshift(
+      //   {
+      //     uri: rootFolder.uri.toString(),
+      //     path: rootFolder.uri.fsPath,
+      //     name: "root",
+      //     relativePath: "./"
+      //   }
+      // );
+      // folders.push(
+      //   {
+      //     uri: rootFolder.uri.toString(),
+      //     path: rootFolder.uri.fsPath,
+      //     name: "./",
+      //     relativePath: "./"
+      //   }
+      // );9
     }
     
     return folders;
