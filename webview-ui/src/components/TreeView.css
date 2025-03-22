@@ -12,10 +12,13 @@
   padding: 8px;
   position: relative;
   border-bottom: 1px solid var(--vscode-panel-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .tree-search-input {
-  width: 100%;
+  flex: 1;
   padding: 6px 24px 6px 8px;
   background-color: var(--vscode-input-background);
   color: var(--vscode-input-foreground);
@@ -30,7 +33,7 @@
 
 .clear-search-btn {
   position: absolute;
-  right: 16px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -39,10 +42,26 @@
   font-size: 16px;
   cursor: pointer;
   opacity: 0.7;
+  z-index: 2;
 }
 
 .clear-search-btn:hover {
   opacity: 1;
+}
+
+.close-all-btn {
+  background-color: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
+  border: none;
+  padding: 4px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.close-all-btn:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
 }
 
 .tree-content {
@@ -110,15 +129,15 @@
   cursor: pointer;
 }
 
-.node-icon {
-  margin-right: 6px;
+.folder-icon-placeholder {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 2px;
 }
 
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  cursor: pointer;
+.node-icon {
+  margin-right: 6px;
 }
 
 .node-checkbox {
@@ -129,6 +148,7 @@
 .node-name {
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
 }
 
 .tree-children {

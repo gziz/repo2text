@@ -36,7 +36,7 @@ const TreeView: React.FC<TreeViewProps> = ({
   // Track parent map and node references for efficient operations
   const folderMapRef = useRef<Record<string, TreeNode>>({});
   const nodeMapRef = useRef<Record<string, TreeNode>>({});
-  console.log("hello?")
+
   // Build tree structure from files and folders
   useEffect(() => {
     const buildTree = () => {
@@ -360,6 +360,12 @@ const TreeView: React.FC<TreeViewProps> = ({
     });
   }, [selectedItems]);
 
+  // Handler to close all expanded folders
+  const handleCloseAll = useCallback(() => {
+    // Set expandedFolders to an empty set to collapse all
+    setExpandedFolders(new Set());
+  }, []);
+
   // Custom checkbox component that supports indeterminate state
   const IndeterminateCheckbox = React.memo(({ 
     checked, 
@@ -402,7 +408,7 @@ const TreeView: React.FC<TreeViewProps> = ({
           }`}
           style={{ paddingLeft: `${node.level * 16}px` }}
         >
-          {node.type === "folder" && (
+          {node.type === "folder" ? (
             <span
               className={`folder-icon ${node.expanded ? "expanded" : ""}`}
               onClick={(e) => {
@@ -412,25 +418,25 @@ const TreeView: React.FC<TreeViewProps> = ({
             >
               {node.expanded ? "▼" : "►"}
             </span>
+          ) : (
+            <span className="folder-icon-placeholder"></span>
           )}
+          <IndeterminateCheckbox
+            checked={node.selected || false}
+            indeterminate={node.indeterminate}
+            onChange={() => handleSelectNode(node)}
+            onClick={(e) => e.stopPropagation()}
+          />
           <span className={`node-icon ${node.type}-icon`}>
             {node.type === "folder" ? "📁" : "📄"}
           </span>
-          <label className="checkbox-label">
-            <IndeterminateCheckbox
-              checked={node.selected || false}
-              indeterminate={node.indeterminate}
-              onChange={() => handleSelectNode(node)}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <span
-              className="node-name"
-              onClick={() => handleSelectNode(node)}
-              title={node.path}
-            >
-              {node.name}
-            </span>
-          </label>
+          <span
+            className="node-name"
+            onClick={() => handleSelectNode(node)}
+            title={node.path}
+          >
+            {node.name}
+          </span>
         </div>
         {node.expanded && node.children && (
           <div className="tree-children">{renderTree(node.children)}</div>
@@ -438,26 +444,35 @@ const TreeView: React.FC<TreeViewProps> = ({
       </div>
     ));
   };
-
+  console.log(selectedItems)
   return (
     <div className="tree-view-container">
       <div className="tree-search-container">
-        <input
-          type="text"
-          className="tree-search-input"
-          placeholder="Search files and folders..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        {searchQuery && (
-          <button
-            className="clear-search-btn"
-            onClick={() => setSearchQuery("")}
-            title="Clear search"
-          >
-            ×
-          </button>
-        )}
+        <div className="search-input-wrapper" style={{ position: 'relative', flex: 1 }}>
+          <input
+            type="text"
+            className="tree-search-input"
+            placeholder="Search files and folders..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="clear-search-btn"
+              onClick={() => setSearchQuery("")}
+              title="Clear search"
+            >
+              x
+            </button>
+          )}
+        </div>
+        <button
+          className="close-all-btn"
+          onClick={handleCloseAll}
+          title="Close all folders"
+        >
+          Close All
+        </button>
       </div>
       <div className="tree-content">
         {filteredTree.length > 0 ? (

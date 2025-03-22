@@ -115,7 +115,6 @@ button:focus {
   border: 1px solid var(--vscode-panel-border);
   border-radius: var(--default-border-radius);
   background-color: var(--vscode-sideBar-background);
-  height: 400px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
