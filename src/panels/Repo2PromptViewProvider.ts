@@ -229,7 +229,7 @@ export class Repo2PromptViewProvider implements vscode.WebviewViewProvider {
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}' ; connect-src ${webview.cspSource};">
           <link rel="stylesheet" type="text/css" href="${styleUri}">
-          <title>Repo 2 Prompt</title>
+          <title></title>
         </head>
         <body>
           <div id="root"></div>

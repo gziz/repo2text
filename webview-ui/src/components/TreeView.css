@@ -5,13 +5,13 @@
   background-color: var(--vscode-sideBar-background);
   color: var(--vscode-foreground);
   font-size: 13px;
-  border-top: 1px solid var(--vscode-panel-border);
+  border-top: none;
 }
 
 .tree-search-container {
-  padding: 8px;
+  /* padding: 8px; */
   position: relative;
-  border-bottom: 1px solid var(--vscode-panel-border);
+  /* border-bottom: 1px solid var(--vscode-panel-border); */
   display: flex;
   align-items: center;
   gap: 8px;
@@ -19,11 +19,11 @@
 
 .tree-search-input {
   flex: 1;
-  padding: 6px 24px 6px 8px;
+  /* padding: 6px 24px 6px 8px; */
   background-color: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
-  border: 1px solid var(--vscode-input-border, transparent);
-  border-radius: 2px;
+  /* color: var(--vscode-input-foreground); */
+  /* border: 1px solid var(--vscode-input-border, transparent); */
+  /* border-radius: 2px; */
   outline: none;
 }
 

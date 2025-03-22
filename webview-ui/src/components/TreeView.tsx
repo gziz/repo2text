@@ -2,6 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { WorkspaceFile, WorkspaceFolder, MentionItem } from "../types/types";
 import { vscode } from "../utilities/vscode";
 import "./TreeView.css";
+import {
+  VSCodeButton,
+  VSCodeTextField,
+  VSCodeCheckbox
+} from "@vscode/webview-ui-toolkit/react";
 
 interface TreeViewProps {
   workspaceFiles: WorkspaceFile[];
@@ -448,31 +453,36 @@ const TreeView: React.FC<TreeViewProps> = ({
   return (
     <div className="tree-view-container">
       <div className="tree-search-container">
-        <div className="search-input-wrapper" style={{ position: 'relative', flex: 1 }}>
-          <input
-            type="text"
-            className="tree-search-input"
+        {/* <div className="search-input-wrapper" style={{ position: 'relative', flex: 1 }}> */}
+          <VSCodeTextField
             placeholder="Search files and folders..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button
-              className="clear-search-btn"
-              onClick={() => setSearchQuery("")}
-              title="Clear search"
-            >
-              x
-            </button>
-          )}
-        </div>
-        <button
-          className="close-all-btn"
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              setSearchQuery(target.value);
+            }}
+            style={{ width: '100%' }}
+          >
+            {searchQuery && (
+              <span
+                slot="end"
+                className="clear-search-btn"
+                onClick={() => setSearchQuery("")}
+                title="Clear search"
+              >
+                x
+              </span>
+            )}
+          </VSCodeTextField>
+        {/* </div> */}
+        <VSCodeButton
+          appearance="secondary"
+          // className="close-all-btn"
           onClick={handleCloseAll}
           title="Close all folders"
         >
-          Close All
-        </button>
+          c
+        </VSCodeButton>
       </div>
       <div className="tree-content">
         {filteredTree.length > 0 ? (
@@ -486,13 +496,13 @@ const TreeView: React.FC<TreeViewProps> = ({
         )}
       </div>
       <div className="tree-footer">
-        <button 
-          className="copy-tree-btn" 
+        <VSCodeButton 
+          // className="copy-tree-btn" 
           onClick={handleCopySelected}
           disabled={selectedItems.length === 0}
         >
-          Copy Selected ({selectedItems.length})
-        </button>
+          Copy ({selectedItems.length})
+        </VSCodeButton>
       </div>
     </div>
   );

@@ -57,8 +57,9 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: 8px;
+  padding: 0;
   box-sizing: border-box;
+  background-color: var(--vscode-sideBar-background, #252526);
 }
 
 /* Scrollbar utilities */
@@ -96,35 +97,42 @@ button:focus {
   height: 100%;
 }
 
-.editor-container {
-  /* flex-grow: 1; */
-  display: flex;
-  flex-direction: column;
-  padding: 8px;
-}
-
-/* New styles for the editor and tree view layout */
-.editor-section {
+.prompt-main-section {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
 }
 
-.tree-view-section {
-  margin-top: 16px;
-  border: 1px solid var(--vscode-panel-border);
-  border-radius: var(--default-border-radius);
-  background-color: var(--vscode-sideBar-background);
-  overflow: hidden;
+.editor-container-wrapper {
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
+  padding: 8px;
+  border: none;
+  overflow: auto;
+  min-height: 60%;
+  height: 60%;
+  background-color: var(--vscode-sideBar-background);
 }
 
-.tree-view-title {
-  margin: 0;
-  padding: 8px 12px;
-  font-size: 14px;
-  font-weight: normal;
-  background-color: var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background));
-  border-bottom: 1px solid var(--vscode-panel-border);
+.tree-view-container-wrapper {
+  padding: 0;
+  background-color: var(--vscode-sideBar-background);
+  padding: 8px;
+  min-height: 200px;
+  flex: 1;
+}
+
+/* VSCode Webview UI Toolkit component styles */
+vscode-button {
+  margin: 4px;
+}
+
+vscode-text-field {
+  --input-width: 100%;
+}
+
+vscode-checkbox {
+  margin-right: 6px;
 }

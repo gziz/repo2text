@@ -3,6 +3,7 @@ import "./App.css";
 import SettingsView from "./components/SettingsView";
 import TipTapEditor from "./components/TipTapEditor";
 import TreeView from "./components/TreeView";
+import CollapsibleView from "./components/CollapsibleView";
 import { Settings, View, WorkspaceFile, WorkspaceFolder } from "./types/types";
 import { vscode } from "./utilities/vscode";
 
@@ -95,32 +96,40 @@ function App() {
     switch (currentView) {
       case "settings":
         return (
-          <SettingsView
-            settings={settings}
-            onSave={handleSaveSettings}
-            onBack={handleBackToEditor}
-            onResetToDefaults={handleResetToDefaults}
-            onUpdateSettings={handleUpdateSettings}
-          />
+          <div style={{ padding: "8px" }}>
+            <SettingsView
+              settings={settings}
+              onSave={handleSaveSettings}
+              onBack={handleBackToEditor}
+              onResetToDefaults={handleResetToDefaults}
+              onUpdateSettings={handleUpdateSettings}
+            />
+          </div>
         );
       case "editor":
         return (
-          <div className="editor-section">
-            <TipTapEditor
-              workspaceFiles={files}
-              workspaceFolders={folders}
-              onUpdate={handleEditorUpdate}
-              initialContent={editorContent}
-            />
-            <div className="tree-view-section">
-              <h3 className="tree-view-title">File Explorer</h3>
-              <TreeView
-                workspaceFiles={files}
-                workspaceFolders={folders}
-                selectedItems={selectedItems}
-                onSelectionChange={handleSelectionChange}
-              />
-            </div>
+          <div className="prompt-main-section">
+            <CollapsibleView title="EDITOR" defaultExpanded={true}>
+              <div className="editor-container-wrapper">
+                <TipTapEditor
+                  workspaceFiles={files}
+                  workspaceFolders={folders}
+                  onUpdate={handleEditorUpdate}
+                  initialContent={editorContent}
+                />
+              </div>
+            </CollapsibleView>
+            
+            <CollapsibleView title="FILE TREE" defaultExpanded={true} badge={selectedItems.length}>
+              <div className="tree-view-container-wrapper">
+                <TreeView
+                  workspaceFiles={files}
+                  workspaceFolders={folders}
+                  selectedItems={selectedItems}
+                  onSelectionChange={handleSelectionChange}
+                />
+              </div>
+            </CollapsibleView>
           </div>
         );
       default:
