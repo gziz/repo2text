@@ -120,7 +120,7 @@ function App() {
               </div>
             </CollapsibleView>
             
-            <CollapsibleView title="FILE TREE" defaultExpanded={true} badge={selectedItems.length}>
+            <CollapsibleView title="FILE TREE" defaultExpanded={true}>
               <div className="tree-view-container-wrapper">
                 <TreeView
                   workspaceFiles={files}

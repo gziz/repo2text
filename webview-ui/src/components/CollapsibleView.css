@@ -28,13 +28,23 @@
 }
 
 .expand-icon {
-  font-size: 10px;
-  margin-right: 2px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
-  text-align: center;
+  height: 16px;
+  margin-right: 2px;
   color: var(--vscode-foreground);
   opacity: 0.7;
+  position: relative;
+  top: 0;
+}
+
+.expand-icon svg {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: -1px;
 }
 
 .collapsible-title {

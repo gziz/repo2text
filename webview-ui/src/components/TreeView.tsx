@@ -7,6 +7,8 @@ import {
   VSCodeTextField,
   VSCodeCheckbox
 } from "@vscode/webview-ui-toolkit/react";
+import { ChevronRightIcon, ChevronDownIcon, FolderIcon, CollapseAllIcon, CloseIcon } from '../icons';
+import FileIconComponent from './FileIcon';
 
 interface TreeViewProps {
   workspaceFiles: WorkspaceFile[];
@@ -421,7 +423,7 @@ const TreeView: React.FC<TreeViewProps> = ({
                 handleToggleExpand(node.id);
               }}
             >
-              {node.expanded ? "▼" : "►"}
+              {node.expanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
             </span>
           ) : (
             <span className="folder-icon-placeholder"></span>
@@ -433,7 +435,14 @@ const TreeView: React.FC<TreeViewProps> = ({
             onClick={(e) => e.stopPropagation()}
           />
           <span className={`node-icon ${node.type}-icon`}>
-            {node.type === "folder" ? "📁" : "📄"}
+            {node.type === "folder" ? 
+              <FolderIcon /> : 
+              <FileIconComponent 
+                filename={node.name} 
+                height="16px" 
+                width="16px" 
+              />
+            }
           </span>
           <span
             className="node-name"
@@ -470,19 +479,18 @@ const TreeView: React.FC<TreeViewProps> = ({
                 onClick={() => setSearchQuery("")}
                 title="Clear search"
               >
-                x
+                <CloseIcon />
               </span>
             )}
           </VSCodeTextField>
         {/* </div> */}
-        <VSCodeButton
-          appearance="secondary"
-          // className="close-all-btn"
+        <div
+          className="collapse-all-icon"
           onClick={handleCloseAll}
           title="Close all folders"
         >
-          c
-        </VSCodeButton>
+          <CollapseAllIcon />
+        </div>
       </div>
       <div className="tree-content">
         {filteredTree.length > 0 ? (

@@ -39,29 +39,23 @@
   background: none;
   border: none;
   color: var(--vscode-input-foreground);
-  font-size: 16px;
   cursor: pointer;
   opacity: 0.7;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.clear-search-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .clear-search-btn:hover {
   opacity: 1;
-}
-
-.close-all-btn {
-  background-color: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
-  color: var(--vscode-button-secondaryForeground, var(--vscode-button-foreground));
-  border: none;
-  padding: 4px 8px;
-  border-radius: 2px;
-  cursor: pointer;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.close-all-btn:hover {
-  background-color: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
 }
 
 .tree-content {
@@ -120,13 +114,18 @@
 }
 
 .folder-icon {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 16px;
   height: 16px;
-  text-align: center;
   margin-right: 2px;
-  font-size: 10px;
   cursor: pointer;
+}
+
+.folder-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .folder-icon-placeholder {
@@ -137,7 +136,22 @@
 }
 
 .node-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-right: 6px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Style for the custom file icon wrapper */
+.file-icon-wrapper {
+  vertical-align: middle;
+}
+
+.node-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .node-checkbox {
@@ -178,4 +192,35 @@ input[type="checkbox"]:indeterminate::after {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* Add a specific class for file icons to ensure consistent alignment */
+.file-icon {
+  margin-right: 6px;
+}
+
+.file-icon-wrapper svg {
+  vertical-align: text-bottom;
+}
+
+.collapse-all-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  color: var(--vscode-foreground);
+  opacity: 0.7;
+  border-radius: 3px;
+}
+
+.collapse-all-icon:hover {
+  opacity: 1;
+  background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
+}
+
+.collapse-all-icon svg {
+  width: 16px;
+  height: 16px;
 }
