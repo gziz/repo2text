@@ -7,7 +7,7 @@ import {
   VSCodeTextField,
   VSCodeCheckbox
 } from "@vscode/webview-ui-toolkit/react";
-import { ChevronRightIcon, ChevronDownIcon, FolderIcon, CollapseAllIcon, CloseIcon } from '../icons';
+import { ChevronRightIcon, ChevronDownIcon, FolderIcon, FolderOpenedIcon, CollapseAllIcon, CloseIcon } from '../icons';
 import FileIconComponent from './FileIcon';
 
 interface TreeViewProps {
@@ -436,11 +436,9 @@ const TreeView: React.FC<TreeViewProps> = ({
           />
           <span className={`node-icon ${node.type}-icon`}>
             {node.type === "folder" ? 
-              <FolderIcon /> : 
+              (node.expanded ? <FolderOpenedIcon /> : <FolderIcon />) : 
               <FileIconComponent 
                 filename={node.name} 
-                height="16px" 
-                width="16px" 
               />
             }
           </span>

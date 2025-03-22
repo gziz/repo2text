@@ -24,7 +24,7 @@
   /* color: var(--vscode-input-foreground); */
   /* border: 1px solid var(--vscode-input-border, transparent); */
   /* border-radius: 2px; */
-  outline: none;
+  /* outline: none; */
 }
 
 .tree-search-input:focus {
