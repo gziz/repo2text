@@ -2,7 +2,7 @@
 
 /* Base container styling */
 .editor-container {
-  margin: 0 2px 20px 2px;
+  margin: 0 2px 5px 2px;
   display: flex;
   flex-direction: column;
 }

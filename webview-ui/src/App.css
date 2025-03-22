@@ -62,22 +62,6 @@ body {
   background-color: var(--vscode-sideBar-background, #252526);
 }
 
-/* Scrollbar utilities */
-.thin-scrollbar {
-  scrollbar-width: thin;
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-}
-
 /* Common form element styles used across the application */
 input, select, button {
   font-family: inherit;
@@ -105,19 +89,11 @@ button:focus {
 }
 
 .editor-container-wrapper {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
   padding: 8px;
-  border: none;
-  overflow: auto;
-  min-height: 60%;
-  height: 60%;
   background-color: var(--vscode-sideBar-background);
 }
 
 .tree-view-container-wrapper {
-  padding: 0;
   background-color: var(--vscode-sideBar-background);
   padding: 8px;
   min-height: 200px;

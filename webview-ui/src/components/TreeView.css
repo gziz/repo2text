@@ -2,34 +2,21 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--vscode-sideBar-background);
+  /* background-color: var(--vscode-sideBar-background); */
   color: var(--vscode-foreground);
   font-size: 13px;
   border-top: none;
 }
 
 .tree-search-container {
-  /* padding: 8px; */
+  padding-bottom: 8px;
   position: relative;
-  /* border-bottom: 1px solid var(--vscode-panel-border); */
+  border-bottom: 1px solid var(--vscode-panel-border);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.tree-search-input {
-  flex: 1;
-  /* padding: 6px 24px 6px 8px; */
-  background-color: var(--vscode-input-background);
-  /* color: var(--vscode-input-foreground); */
-  /* border: 1px solid var(--vscode-input-border, transparent); */
-  /* border-radius: 2px; */
-  /* outline: none; */
-}
-
-.tree-search-input:focus {
-  border-color: var(--vscode-focusBorder);
-}
 
 .clear-search-btn {
   position: absolute;
@@ -49,11 +36,6 @@
   height: 16px;
 }
 
-.clear-search-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
 .clear-search-btn:hover {
   opacity: 1;
 }
@@ -69,27 +51,6 @@
   border-top: 1px solid var(--vscode-panel-border);
   display: flex;
   justify-content: flex-end;
-}
-
-.copy-tree-btn {
-  background-color: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
-  border: none;
-  padding: 6px 12px;
-  border-radius: 2px;
-  cursor: pointer;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-}
-
-.copy-tree-btn:hover {
-  background-color: var(--vscode-button-hoverBackground);
-}
-
-.copy-tree-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .tree-node-container {
@@ -113,26 +74,11 @@
   color: var(--vscode-list-activeSelectionForeground);
 }
 
-.folder-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  margin-right: 2px;
-  cursor: pointer;
-}
-
-.folder-icon svg {
-  width: 16px;
-  height: 16px;
-}
 
 .folder-icon-placeholder {
   display: inline-block;
   width: 16px;
   height: 16px;
-  margin-right: 2px;
 }
 
 .node-icon {
@@ -147,11 +93,6 @@
 /* Style for the custom file icon wrapper */
 .file-icon-wrapper {
   vertical-align: middle;
-}
-
-.node-icon svg {
-  width: 16px;
-  height: 16px;
 }
 
 .node-checkbox {
@@ -218,9 +159,4 @@ input[type="checkbox"]:indeterminate::after {
 .collapse-all-icon:hover {
   opacity: 1;
   background-color: var(--vscode-toolbar-hoverBackground, rgba(90, 93, 94, 0.31));
-}
-
-.collapse-all-icon svg {
-  width: 16px;
-  height: 16px;
 }
