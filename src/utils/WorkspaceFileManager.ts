@@ -319,40 +319,6 @@ export class WorkspaceFileManager {
   }
 
   /**
-   * Handle file change events
-   */
-  private async handleFileChange(files: readonly vscode.Uri[]): Promise<void> {
-    // For file changes, we just need to make sure the file is in our cache
-    // We don't need to re-read content as that's done on demand
-    let cacheChanged = false;
-
-    for (const uri of files) {
-      if (!this.isExcludedFile(uri.fsPath) && !this.filePathCache.has(uri.fsPath)) {
-        try {
-          const fileStat = await vscode.workspace.fs.stat(uri);
-          
-          if (fileStat.type === vscode.FileType.File) {
-            const file: WorkspaceFile = {
-              uri: uri.toString(),
-              path: uri.fsPath,
-              name: path.basename(uri.fsPath),
-              relativePath: vscode.workspace.asRelativePath(uri)
-            };
-            this.filePathCache.set(uri.fsPath, file);
-            cacheChanged = true;
-          }
-        } catch (error) {
-          console.error(`Error handling file change for ${uri.fsPath}:`, error);
-        }
-      }
-    }
-
-    if (cacheChanged) {
-      this._onCacheChanged.fire();
-    }
-  }
-
-  /**
    * Refresh the file and folder caches by scanning the workspace folders using fast-glob
    */
   private async refreshCache(): Promise<void> {
