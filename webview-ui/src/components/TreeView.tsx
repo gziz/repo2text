@@ -456,12 +456,12 @@ const TreeView: React.FC<TreeViewProps> = ({
       </div>
     ));
   };
-  console.log(selectedItems)
   return (
     <div className="tree-view-container">
       <div className="tree-search-container">
         {/* <div className="search-input-wrapper" style={{ position: 'relative', flex: 1 }}> */}
           <VSCodeTextField
+            className="tree-search-input"
             placeholder="Search files and folders..."
             value={searchQuery}
             onInput={(e) => {

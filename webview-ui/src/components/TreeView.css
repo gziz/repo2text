@@ -17,6 +17,13 @@
   gap: 8px;
 }
 
+.tree-search-input {
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: var(--default-border-radius);
+  outline: none;
+}
 
 .clear-search-btn {
   position: absolute;
