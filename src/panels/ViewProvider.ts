@@ -8,7 +8,7 @@ import { PromptGenerator } from "../utils/PromptGenerator";
 /**
  * Provider for the Repo2Prompt sidebar view
  */
-export class Repo2PromptViewProvider implements vscode.WebviewViewProvider {
+export class ViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "repo2promptView";
 
   private _view?: vscode.WebviewView;
@@ -125,9 +125,9 @@ export class Repo2PromptViewProvider implements vscode.WebviewViewProvider {
     // Start file system watchers
     this._fileManager.startHeavyFileSystemWatchers();
     
-    // Refresh cache if changes occurred while hidden
+    // Refresh cache if changes occurred while view is hidden
     if (this._fileManager.hasChanges()) {
-      this._refreshFileCache();
+      this._refreshCache();
     } else {
       // Initialize if not done already
       this._fileManager.initialize()
@@ -139,8 +139,8 @@ export class Repo2PromptViewProvider implements vscode.WebviewViewProvider {
   /**
    * Refresh the file cache and update the webview
    */
-  private _refreshFileCache(): void {
-    this._fileManager.refreshFileCache()
+  private _refreshCache(): void {
+    this._fileManager.refreshCache()
       .then(() => {
         this._refreshWebviewWorkspaceData();
         this._fileManager.resetChangeTracker();
@@ -152,7 +152,6 @@ export class Repo2PromptViewProvider implements vscode.WebviewViewProvider {
    * Handle cache refresh errors
    */
   private _handleCacheError(err: Error): void {
-    console.error("R2P: Error refreshing cache:", err);
     // Still try to refresh the webview data even if cache refresh failed
     this._refreshWebviewWorkspaceData();
     this._fileManager.resetChangeTracker();
@@ -170,7 +169,7 @@ export class Repo2PromptViewProvider implements vscode.WebviewViewProvider {
    */
   private async _refreshWebviewWorkspaceData(): Promise<void> {
     if (!this._view) return;
-    
+
     try {
       await this._sendWorkspaceFilesToWebview();
       await this._sendWorkspaceFoldersToWebview();
