@@ -76,12 +76,6 @@
   background-color: var(--vscode-list-hoverBackground);
 }
 
-.tree-node.selected {
-  background-color: var(--vscode-list-activeSelectionBackground);
-  color: var(--vscode-list-activeSelectionForeground);
-}
-
-
 .folder-icon-placeholder {
   display: inline-block;
   width: 16px;
