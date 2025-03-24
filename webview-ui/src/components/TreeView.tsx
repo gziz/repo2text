@@ -39,6 +39,7 @@ const TreeView: React.FC<TreeViewProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [treeData, setTreeData] = useState<TreeNode[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const prevSearchQueryRef = useRef("");
 
   // Track parent map and node references for efficient operations
   const folderMapRef = useRef<Record<string, TreeNode>>({});
@@ -209,6 +210,57 @@ const TreeView: React.FC<TreeViewProps> = ({
     }
   };
 
+  // Auto-expand folders with matching results when search query changes
+  useEffect(() => {
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+    const isNewQuery = prevSearchQueryRef.current !== normalizedQuery;
+    prevSearchQueryRef.current = normalizedQuery;
+    
+    if (isNewQuery && normalizedQuery) {
+      // Find folders with matches and expand them
+      const foldersToExpand: string[] = [];
+      
+      const findMatchingFolders = (nodes: TreeNode[]) => {
+        for (const node of nodes) {
+          if (node.type === 'folder') {
+            // Check if folder name matches
+            if (node.name.toLowerCase().includes(normalizedQuery) || 
+                node.path.toLowerCase().includes(normalizedQuery)) {
+              foldersToExpand.push(node.id);
+            }
+            
+            // Check if any children match
+            if (node.children && node.children.length > 0) {
+              // Check if any direct child matches
+              const hasMatchingChild = node.children.some(child => 
+                child.name.toLowerCase().includes(normalizedQuery) ||
+                child.path.toLowerCase().includes(normalizedQuery)
+              );
+              
+              if (hasMatchingChild) {
+                foldersToExpand.push(node.id);
+              }
+              
+              // Recursively check nested folders
+              findMatchingFolders(node.children);
+            }
+          }
+        }
+      };
+      
+      findMatchingFolders(treeData);
+      
+      // Update expanded folders state
+      if (foldersToExpand.length > 0) {
+        setExpandedFolders(prev => {
+          const newSet = new Set(prev);
+          foldersToExpand.forEach(id => newSet.add(id));
+          return newSet;
+        });
+      }
+    }
+  }, [searchQuery, treeData]);
+
   // Filter tree based on search query
   const filteredTree = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -246,8 +298,8 @@ const TreeView: React.FC<TreeViewProps> = ({
           // If it's a folder, recursively filter children
           if (node.children && node.children.length > 0) {
             clonedNode.children = filterTreeNodes(node.children);
-            // When filtering, always show children of matching folders
-            clonedNode.expanded = true;
+            // Respect the current expandedFolders state
+            clonedNode.expanded = expandedFolders.has(node.id);
           }
           
           filteredNodes.push(clonedNode);
@@ -258,7 +310,7 @@ const TreeView: React.FC<TreeViewProps> = ({
     };
 
     return filterTreeNodes(treeData);
-  }, [treeData, searchQuery]);
+  }, [treeData, searchQuery, expandedFolders]);
 
   // Handle node expansion toggle
   const handleToggleExpand = (nodeId: string) => {
@@ -292,26 +344,72 @@ const TreeView: React.FC<TreeViewProps> = ({
     return result;
   };
 
+  // Get all child workspace items (files and folders) from the original data source
+  const getAllChildWorkspaceItems = (nodeId: string): (WorkspaceFile | WorkspaceFolder)[] => {
+    const result: (WorkspaceFile | WorkspaceFolder)[] = [];
+    
+    // Find the folder in the original data
+    const folder = workspaceFolders.find(f => f.uri === nodeId);
+    if (!folder) return result;
+    
+    // Get all nested files and folders that are children of this folder
+    const folderPath = folder.relativePath;
+    
+    // Add all files that are children of this folder
+    const childFiles = workspaceFiles.filter(file => {
+      const filePath = file.relativePath;
+      return filePath.startsWith(folderPath + '/') && filePath !== folderPath;
+    });
+    result.push(...childFiles);
+    
+    // Add all folders that are children of this folder
+    const childFolders = workspaceFolders.filter(subFolder => {
+      const subFolderPath = subFolder.relativePath;
+      return subFolderPath.startsWith(folderPath + '/') && subFolderPath !== folderPath;
+    });
+    result.push(...childFolders);
+    
+    return result;
+  };
+
   // Handle node selection toggle with proper parent/child relationship
   const handleSelectNode = (node: TreeNode) => {
     // Get the current selection state
     const isSelected = node.selected;
     const newSelectionState = !isSelected;
     
-    // Get all affected items (the clicked node and its children if it's a folder)
-    const affectedItems: string[] = [node.id];
+    // Check if we're in filtered mode (search is active)
+    const isFiltered = searchQuery.trim() !== '';
     
-    // If it's a folder and we're selecting it, include all children recursively
+    let affectedItems: string[] = [node.id];
+    
+    // Handle folder selection differently based on whether filtering is active
     if (node.type === 'folder') {
-      const allChildren = getAllChildNodes(node);
-      if (newSelectionState) {
-        // When selecting a folder, add all its children
-        affectedItems.push(...allChildren.map(child => child.id));
+      if (isFiltered) {
+        // When in filtered mode, get all actual children from original data
+        const allChildItems = getAllChildWorkspaceItems(node.id);
+        if (newSelectionState) {
+          // Add all children when selecting
+          affectedItems.push(...allChildItems.map(item => 'uri' in item ? item.uri : ''));
+        } else {
+          // Remove all children when deselecting
+          affectedItems.push(...allChildItems.map(item => 'uri' in item ? item.uri : ''));
+        }
       } else {
-        // When deselecting a folder, also remove all its children
-        affectedItems.push(...allChildren.map(child => child.id));
+        // In normal mode, use the visible node children
+        const allChildren = getAllChildNodes(node);
+        if (newSelectionState) {
+          // When selecting a folder, add all its children
+          affectedItems.push(...allChildren.map(child => child.id));
+        } else {
+          // When deselecting a folder, also remove all its children
+          affectedItems.push(...allChildren.map(child => child.id));
+        }
       }
     }
+    
+    // Filter out any empty or invalid URIs
+    affectedItems = affectedItems.filter(id => id);
     
     // Create a new selection by filtering out deselected items or adding selected items
     let newSelection: (WorkspaceFile | WorkspaceFolder)[] = [];
