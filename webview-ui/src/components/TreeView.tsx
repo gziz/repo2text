@@ -159,7 +159,7 @@ const TreeView: React.FC<TreeViewProps> = ({
       folder.selected = false;
     });
 
-    // For each selected item, update its state and propagate to parents
+    // First mark all explicitly selected items
     selectedItems.forEach(item => {
       if (!('uri' in item)) return;
       const uri = item.uri;
@@ -186,8 +186,12 @@ const TreeView: React.FC<TreeViewProps> = ({
       else if (selectedChildren.length > 0 || indeterminateChildren.length > 0) {
         folder.selected = false;
         folder.indeterminate = true;
-      }
+      } 
       // Otherwise (no children selected), folder is not selected and not indeterminate
+      else {
+        folder.selected = false;
+        folder.indeterminate = false;
+      }
     };
     
     // Process folders bottom-up to ensure correct propagation
@@ -298,9 +302,15 @@ const TreeView: React.FC<TreeViewProps> = ({
     const affectedItems: string[] = [node.id];
     
     // If it's a folder and we're selecting it, include all children recursively
-    if (node.type === 'folder' && newSelectionState) {
+    if (node.type === 'folder') {
       const allChildren = getAllChildNodes(node);
-      affectedItems.push(...allChildren.map(child => child.id));
+      if (newSelectionState) {
+        // When selecting a folder, add all its children
+        affectedItems.push(...allChildren.map(child => child.id));
+      } else {
+        // When deselecting a folder, also remove all its children
+        affectedItems.push(...allChildren.map(child => child.id));
+      }
     }
     
     // Create a new selection by filtering out deselected items or adding selected items
@@ -329,19 +339,10 @@ const TreeView: React.FC<TreeViewProps> = ({
       newSelection = [...selectedItems, ...itemsToAdd];
     } else {
       // If we're deselecting...
-      if (node.type === 'file') {
-        // For files, just remove this item
-        newSelection = selectedItems.filter(item => 
-          !('uri' in item) || item.uri !== node.id
-        );
-      } else {
-        // For folders, remove this folder and all its children
-        const allChildren = getAllChildNodes(node);
-        const idsToRemove = new Set([node.id, ...allChildren.map(child => child.id)]);
-        newSelection = selectedItems.filter(item => 
-          !('uri' in item) || !idsToRemove.has(item.uri)
-        );
-      }
+      const idsToRemove = new Set(affectedItems);
+      newSelection = selectedItems.filter(item => 
+        !('uri' in item) || !idsToRemove.has(item.uri)
+      );
     }
     
     // Update the selection
@@ -456,6 +457,7 @@ const TreeView: React.FC<TreeViewProps> = ({
       </div>
     ));
   };
+  console.log("R2P:", filteredTree);
   return (
     <div className="tree-view-container">
       <div className="tree-search-container">

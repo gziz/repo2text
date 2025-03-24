@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  /* background-color: var(--vscode-sideBar-background); */
   color: var(--vscode-foreground);
   font-size: 13px;
   border-top: none;
@@ -129,8 +128,8 @@ input[type="checkbox"]:indeterminate::after {
   content: "";
   position: absolute;
   width: 60%;
-  height: 2px;
-  background-color: var(--vscode-checkbox-foreground);
+  height: 2px; 
+  background-color: var(--vscode-input-background); /* TODO: Use button foreground */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
