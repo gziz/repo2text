@@ -2,8 +2,6 @@
 
 This extension helps you generate prompts for AI models by including code context from your workspace. It allows you to select files and folders from your workspace, customize formatting templates, and generate prompts that include the file structure and contents.
 
-![A screenshot of the sample extension.](./assets/hello-world.png)
-
 ## Features
 
 - Select files and folders to include in your prompt
