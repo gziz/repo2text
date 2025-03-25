@@ -30,3 +30,16 @@ export interface Settings {
   promptTemplate: any; // TipTap JSON document
   fileTemplate: any; // TipTap JSON document for file content formatting
 }
+
+export interface TreeNode {
+  id: string;
+  name: string;
+  path: string;
+  type: "file" | "folder";
+  level: number;
+  expanded?: boolean;
+  children?: TreeNode[];
+  parent?: string;
+  selected?: boolean;
+  indeterminate?: boolean; // For partially selected folders
+}
