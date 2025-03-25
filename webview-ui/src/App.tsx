@@ -13,7 +13,7 @@ function App() {
   const [editorContent, setEditorContent] = useState<string>("");
   const [currentView, setCurrentView] = useState<View>("editor");
   const [settings, setSettings] = useState<Settings | null>(null);
-  const [selectedItems, setSelectedItems] = useState<(WorkspaceFile | WorkspaceFolder)[]>([]);
+  const [selectedTreeItems, setSelectedTreeItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Make a single initialization request instead of multiple requestsd
@@ -62,8 +62,8 @@ function App() {
   };
 
   // Handle selection change in tree view
-  const handleSelectionChange = (items: (WorkspaceFile | WorkspaceFolder)[]) => {
-    setSelectedItems(items);
+  const handleSelectionChange = (newPaths: Set<string>) => {
+    setSelectedTreeItems(newPaths);
   };
 
   // Handle back to editor navigation
@@ -125,7 +125,7 @@ function App() {
                 <TreeView
                   workspaceFiles={files}
                   workspaceFolders={folders}
-                  selectedItems={selectedItems}
+                  selectedPaths={selectedTreeItems}
                   onSelectionChange={handleSelectionChange}
                 />
               </div>

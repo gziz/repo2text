@@ -17,6 +17,7 @@
 }
 
 .tree-search-input {
+  width: 100%;
   background-color: var(--vscode-input-background);
   color: var(--vscode-foreground);
   border: 1px solid var(--vscode-input-border);
