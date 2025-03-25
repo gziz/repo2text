@@ -94,22 +94,22 @@ export class WorkspaceFileManager {
       const rootFolder = workspaceFolders[0];
       
       // Add two entries for the root folder with different names
-      folders.unshift(
-        {
-          uri: rootFolder.uri.toString(),
-          path: rootFolder.uri.fsPath,
-          name: "root",
-          relativePath: "./"
-        }
-      );
-      folders.push(
-        {
-          uri: rootFolder.uri.toString(),
-          path: rootFolder.uri.fsPath,
-          name: "./",
-          relativePath: "./"
-        }
-      );9
+      // folders.unshift(
+      //   {
+      //     uri: rootFolder.uri.toString(),
+      //     path: rootFolder.uri.fsPath,
+      //     name: "root",
+      //     relativePath: "./"
+      //   }
+      // );
+      // folders.push(
+      //   {
+      //     uri: rootFolder.uri.toString(),
+      //     path: rootFolder.uri.fsPath,
+      //     name: "./",
+      //     relativePath: "./"
+      //   }
+      // );9
     }
     
     return folders;
@@ -192,6 +192,11 @@ export class WorkspaceFileManager {
       this.hasChangedSinceLastView = true;
     });
 
+    // Watch for file renames
+    const renameWatcher = vscode.workspace.onDidRenameFiles(() => {
+      this.hasChangedSinceLastView = true;
+    });
+
     // Watch for workspace folder changes
     const folderWatcher = vscode.workspace.onDidChangeWorkspaceFolders(() => {
       this.hasChangedSinceLastView = true;
@@ -200,6 +205,7 @@ export class WorkspaceFileManager {
     this.lightFileWatcherDisposables.push(
       createWatcher,
       deleteWatcher,
+      renameWatcher,
       folderWatcher
     );
   }
@@ -208,8 +214,8 @@ export class WorkspaceFileManager {
    * Refresh the file and folder caches (public method for external use)
    * @returns Promise that resolves when refresh is complete
    */
-  public async refreshFileCache(): Promise<void> {
-    await this.refreshCache();
+  public async refreshCache(): Promise<void> {
+    await this._refreshCache();
     // Reset the change tracker after refreshing
     this.hasChangedSinceLastView = false;
   }
@@ -228,14 +234,20 @@ export class WorkspaceFileManager {
       await this.handleFileDeletion(event.files);
     });
 
+    // Watch for file renames
+    const renameWatcher = vscode.workspace.onDidRenameFiles(async (event) => {
+      await this.handleFileRename(event.files);
+    });
+
     // Watch for workspace folder changes
     const folderWatcher = vscode.workspace.onDidChangeWorkspaceFolders(async () => {
-      await this.refreshCache();
+      await this._refreshCache();
     });
 
     this.heavyFileWatcherDisposables.push(
       createWatcher,
       deleteWatcher,
+      renameWatcher,
       folderWatcher
     );
   }
@@ -252,7 +264,7 @@ export class WorkspaceFileManager {
         
         // If directory was created, refresh the whole cache for simplicity
         if (fileStat.type === vscode.FileType.Directory) {
-          await this.refreshCache();
+          await this._refreshCache();
           return;
         } 
         // If it's a file and not excluded, add to cache
@@ -319,31 +331,37 @@ export class WorkspaceFileManager {
   }
 
   /**
-   * Handle file change events
+   * Handle file rename events
    */
-  private async handleFileChange(files: readonly vscode.Uri[]): Promise<void> {
-    // For file changes, we just need to make sure the file is in our cache
-    // We don't need to re-read content as that's done on demand
+  private async handleFileRename(files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[]): Promise<void> {
     let cacheChanged = false;
 
-    for (const uri of files) {
-      if (!this.isExcludedFile(uri.fsPath) && !this.filePathCache.has(uri.fsPath)) {
-        try {
-          const fileStat = await vscode.workspace.fs.stat(uri);
+    for (const { oldUri, newUri } of files) {
+      try {
+        const fileStat = await vscode.workspace.fs.stat(newUri);
+        
+        // If directory was renamed, refresh the whole cache for simplicity
+        if (fileStat.type === vscode.FileType.Directory) {
+          await this._refreshCache();
+          return;
+        } 
+        // If it's a file and not excluded, update the cache
+        else if (fileStat.type === vscode.FileType.File && !this.isExcludedFile(newUri.fsPath)) {
+          // Remove old file from cache
+          this.filePathCache.delete(oldUri.fsPath);
           
-          if (fileStat.type === vscode.FileType.File) {
-            const file: WorkspaceFile = {
-              uri: uri.toString(),
-              path: uri.fsPath,
-              name: path.basename(uri.fsPath),
-              relativePath: vscode.workspace.asRelativePath(uri)
-            };
-            this.filePathCache.set(uri.fsPath, file);
-            cacheChanged = true;
-          }
-        } catch (error) {
-          console.error(`Error handling file change for ${uri.fsPath}:`, error);
+          // Add new file to cache
+          const file: WorkspaceFile = {
+            uri: newUri.toString(),
+            path: newUri.fsPath,
+            name: path.basename(newUri.fsPath),
+            relativePath: vscode.workspace.asRelativePath(newUri)
+          };
+          this.filePathCache.set(newUri.fsPath, file);
+          cacheChanged = true;
         }
+      } catch (error) {
+        console.error(`Error handling file rename from ${oldUri.fsPath} to ${newUri.fsPath}:`, error);
       }
     }
 
@@ -353,10 +371,11 @@ export class WorkspaceFileManager {
   }
 
   /**
-   * Refresh the file and folder caches by scanning the workspace folders using fast-glob
+   * Internal implementation of cache refresh
    */
-  private async refreshCache(): Promise<void> {
+  private async _refreshCache(): Promise<void> {
     try {
+      console.log("R2P: Refreshing cache");
       // Clear existing caches
       this.filePathCache.clear();
       this.folderPathCache.clear();

@@ -4,11 +4,11 @@ import { themeIcons } from "seti-file-icons";
 
 export interface FileIconProps {
   filename: string;
-  height: string;
-  width: string;
+  height?: string;
+  width?: string;
 }
 
-export default function FileIcon({ filename, height, width }: FileIconProps) {
+export default function FileIcon({ filename, height = "20", width = "20" }: FileIconProps) {
   // Get the file extension or use the full filename for special cases
   const fileInfo = useMemo(() => {
     // Remove any path-like structure, focus only on filename

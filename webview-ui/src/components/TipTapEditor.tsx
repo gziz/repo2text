@@ -205,7 +205,6 @@ const TipTapEditor: React.FC<TipTapEditorProps> = ({
   };
 
   return (
-    <div className="editor-container">
       <div
         className="input-box"
         onKeyDown={handleKeyDown}
@@ -221,7 +220,6 @@ const TipTapEditor: React.FC<TipTapEditorProps> = ({
           <CopyPromptButton onClick={handleCopyPrompt} />
         </div>
       </div>
-    </div>
   );
 };
 

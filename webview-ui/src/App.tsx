@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import SettingsView from "./components/SettingsView";
 import TipTapEditor from "./components/TipTapEditor";
+import TreeView from "./components/TreeView";
+import CollapsibleView from "./components/CollapsibleView";
 import { Settings, View, WorkspaceFile, WorkspaceFolder } from "./types/types";
 import { vscode } from "./utilities/vscode";
 
@@ -11,6 +13,7 @@ function App() {
   const [editorContent, setEditorContent] = useState<string>("");
   const [currentView, setCurrentView] = useState<View>("editor");
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [selectedTreeItems, setSelectedTreeItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Make a single initialization request instead of multiple requestsd
@@ -58,6 +61,11 @@ function App() {
     setEditorContent(html);
   };
 
+  // Handle selection change in tree view
+  const handleSelectionChange = (newPaths: Set<string>) => {
+    setSelectedTreeItems(newPaths);
+  };
+
   // Handle back to editor navigation
   const handleBackToEditor = () => {
     setCurrentView("editor");
@@ -88,22 +96,41 @@ function App() {
     switch (currentView) {
       case "settings":
         return (
-          <SettingsView
-            settings={settings}
-            onSave={handleSaveSettings}
-            onBack={handleBackToEditor}
-            onResetToDefaults={handleResetToDefaults}
-            onUpdateSettings={handleUpdateSettings}
-          />
+          <div style={{ padding: "8px" }}>
+            <SettingsView
+              settings={settings}
+              onSave={handleSaveSettings}
+              onBack={handleBackToEditor}
+              onResetToDefaults={handleResetToDefaults}
+              onUpdateSettings={handleUpdateSettings}
+            />
+          </div>
         );
       case "editor":
         return (
-          <TipTapEditor
-            workspaceFiles={files}
-            workspaceFolders={folders}
-            onUpdate={handleEditorUpdate}
-            initialContent={editorContent}
-          />
+          <div className="prompt-main-section">
+            <CollapsibleView title="EDITOR" defaultExpanded={true}>
+              <div className="editor-container-wrapper">
+                <TipTapEditor
+                  workspaceFiles={files}
+                  workspaceFolders={folders}
+                  onUpdate={handleEditorUpdate}
+                  initialContent={editorContent}
+                />
+              </div>
+            </CollapsibleView>
+            
+            <CollapsibleView title="FILE TREE" defaultExpanded={true}>
+              <div className="tree-view-container-wrapper">
+                <TreeView
+                  workspaceFiles={files}
+                  workspaceFolders={folders}
+                  selectedPaths={selectedTreeItems}
+                  onSelectionChange={handleSelectionChange}
+                />
+              </div>
+            </CollapsibleView>
+          </div>
         );
       default:
         return null;

@@ -121,7 +121,7 @@ export default forwardRef<any, MentionListProps>((props, ref) => {
               <div className="dropdown-item-left">
                 <span className="dropdown-item-icon">
                   {item.type === "file" ? (
-                    <FileIcon filename={item.label} width="20" height="20" />
+                    <FileIcon filename={item.label}/>
                   ) : (
                     <FolderIcon width="16" height="16" />
                   )}

@@ -50,16 +50,8 @@ export class WebviewMessageHandler {
           this._sendWorkspaceFolders();
           break;
           
-        case "readFile":
-          await this._handleReadFileRequest(message.path);
-          break;
-          
         case "copyWithContext":
           await this._handleCopyWithContextRequest(message.text, message.mentions);
-          break;
-          
-        case "copyText":
-          await this._handleCopyTextRequest(message.text);
           break;
           
         case "showMessage":
@@ -99,24 +91,6 @@ export class WebviewMessageHandler {
     });
   }
 
-  // Handle a request to read a file's contents
-  private async _handleReadFileRequest(filePath: string): Promise<void> {
-    try {
-      const content = await this._fileManager.readFile(filePath);
-      this._webviewView.webview.postMessage({ 
-        command: "fileContent", 
-        path: filePath, 
-        content 
-      });
-    } catch (error) {
-      console.error(`Error reading file ${filePath}:`, error);
-      this._webviewView.webview.postMessage({ 
-        command: "fileContent", 
-        path: filePath, 
-        content: "Error reading file content" 
-      });
-    }
-  }
 
   // Handle a request to copy prompt with context
   private async _handleCopyWithContextRequest(userText: string, mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>): Promise<void> {
@@ -136,26 +110,6 @@ export class WebviewMessageHandler {
 
     } catch (error) {
       vscode.window.showErrorMessage("Failed to generate prompt: " + (error as Error).message);
-    }
-  }
-
-  // Handle a request to copy text to clipboard
-  private async _handleCopyTextRequest(text: string): Promise<void> {
-    try {
-      await vscode.env.clipboard.writeText(text);
-      const statusBarMessage = vscode.window.setStatusBarMessage("Prompt copied to clipboard!");
-      this._activeStatusBarMessages.push(statusBarMessage);
-      setTimeout(() => {
-        statusBarMessage.dispose();
-        // Remove from active messages after disposal
-        const index = this._activeStatusBarMessages.indexOf(statusBarMessage);
-        if (index > -1) {
-          this._activeStatusBarMessages.splice(index, 1);
-        }
-      }, 3000);
-
-    } catch (error) {
-      vscode.window.showErrorMessage("Failed to copy text: " + (error as Error).message);
     }
   }
 

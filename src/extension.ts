@@ -1,5 +1,5 @@
 import { commands, ExtensionContext, window } from "vscode";
-import { Repo2PromptViewProvider } from "./panels/Repo2PromptViewProvider";
+import { ViewProvider } from "./panels/ViewProvider";
 import { WorkspaceFileManager } from "./utils/WorkspaceFileManager";
 import { DEFAULT_PROMPT_TEMPLATE, DEFAULT_FILE_TEMPLATE } from "./utils/defaultTemplate";
 
@@ -21,10 +21,10 @@ export function activate(context: ExtensionContext) {
   });
 
   // Register the sidebar view provider
-  const repo2promptViewProvider = new Repo2PromptViewProvider(context.extensionUri, workspaceFileManager);
+  const repo2promptViewProvider = new ViewProvider(context.extensionUri, workspaceFileManager);
   context.subscriptions.push(
     window.registerWebviewViewProvider(
-      Repo2PromptViewProvider.viewType,
+      ViewProvider.viewType,
       repo2promptViewProvider,
       {
         webviewOptions: {

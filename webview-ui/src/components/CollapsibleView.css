@@ -1,0 +1,85 @@
+.collapsible-view {
+  width: 100%;
+  margin-bottom: 4px;
+  background-color: var(--vscode-sideBar-background, #252526);
+  color: var(--vscode-sideBar-foreground, #cccccc);
+}
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  height: 22px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.collapsible-header:hover {
+  background-color: var(--vsc-background-hover-light);
+}
+
+.collapsible-header-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.expand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 2px;
+  color: var(--vscode-foreground);
+  opacity: 0.7;
+  position: relative;
+  top: 0;
+}
+
+.expand-icon svg {
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: -1px;
+}
+
+.collapsible-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vscode-sideBarTitle-foreground, #bbbbbb);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--vscode-badge-background, #4d4d4d);
+  color: var(--vscode-badge-foreground, #ffffff);
+  font-size: 10px;
+  border-radius: 11px;
+  padding: 2px 6px;
+  min-width: 8px;
+  height: 14px;
+  line-height: 14px;
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+.collapsible-content {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+/* Add a focus style that matches VSCode */
+.collapsible-header:focus-visible {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+} 
