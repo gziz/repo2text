@@ -634,7 +634,7 @@ const TreeView: React.FC<TreeViewProps> = ({
           onClick={handleCopySelected}
           disabled={selectedPaths.size === 0}
         >
-          Copy ({selectedPaths.size})
+          Copy
         </VSCodeButton>
       </div>
     </div>
