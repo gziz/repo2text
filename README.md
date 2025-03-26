@@ -1,32 +1,53 @@
-# Repo2Prompt (IDE Extension)
+# Repo2Prompt
 
-This extension helps you generate prompts for AI models by including code context from your workspace. It allows you to select files and folders from your workspace, customize formatting templates, and generate prompts that include the file structure and contents.
+A VS Code extension that allows you to export your entire codebase or specific files into a single LLM-friendly text, directly from your IDE, no external tools needed.
+See a demo in [here](repo2prompt.gziz.io)!
 
 ## Features
 
-- Select files and folders to include in your prompt
-- Automatic file tree generation showing the structure of selected files
-- Customizable templates for prompt and file content formatting
+- **Contextual Code Selection**: Select files and folders from your workspace to include as context in your AI prompts
+- **Dual Selection Methods**:
+  - Tree view with checkboxes for selecting multiple files/folders
+  - @mention support in the editor to quickly reference specific files
+- **Smart Search**: Find files quickly with built-in search functionality
+- **Customizable Templates**: Format your prompts exactly how you need with template editors
+- **Easy Copy**: One-click copy of your prompt with all selected file contents
 
 ## Settings
 
-The extension provides several customization options:
-
 ### General Settings
 
-- **Exclude Hidden Directories**: When enabled, directories starting with "." will be excluded (highly recommended for performance reasons).
-- **Max File Size (KB)**: Files larger than this size will be excluded from the prompt to prevent token limit issues.
+- **Exclude Hidden Directories**: When enabled, directories starting with "." will be excluded (recommended for performance)
+- **Max File Size (KB)**: Files larger than this size will be excluded to prevent token limit issues
 
 ### Template Customization
 
-- **Prompt Template**: Customize how prompts are formatted. Available variables include:
-  - `fileMap`: A visual representation of the file structure
-  - `fileContents`: The contents of selected files
-  - `userText`: Text entered by the user in the prompt editor
+Repo2Prompt offers powerful template customization options:
 
-- **File Content Template**: Customize how each file is displayed within the prompt. Available variables include:
-  - `filePath`: The path of the file relative to the workspace
-  - `fileContent`: The content of the file
+#### Editor Prompt Template
 
-The templates use a rich text editor that allows for formatted text, helping you create well-structured prompts that work best with your preferred AI model.
+Customize how prompts from the editor are formatted with these variables:
+- `fileMap`: A visual representation of the file structure
+- `fileContents`: The contents of selected files
+- `userText`: Text entered by the user in the prompt editor
+
+#### TreeView Prompt Template
+
+Customize how prompts from the tree view are formatted with these variables:
+- `fileMap`: A visual representation of the file structure
+- `fileContents`: The contents of selected files
+
+#### File Content Template
+
+Customize how each file is displayed within the prompt:
+- `filePath`: The path of the file relative to the workspace
+- `fileContent`: The content of the file
+
+## License
+
+[MIT](LICENSE)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
