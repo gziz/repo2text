@@ -192,3 +192,38 @@
     transform: rotate(360deg);
   }
 }
+
+/* Add these styles to your SettingsView.css */
+.settings-header-with-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.template-toggle {
+  display: flex;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--vscode-button-secondaryBackground);
+}
+
+.toggle-button {
+  background-color: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-button.active {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+
+.toggle-button:hover:not(.active) {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}

@@ -165,6 +165,7 @@ const TipTapEditor: React.FC<TipTapEditorProps> = ({
         command: "copyWithContext",
         text: content,
         mentions: mentionsForExtension,
+        source: "editor" // Explicitly set the source
       });
     } else {
       // No mentions, just copy the text

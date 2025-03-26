@@ -93,25 +93,15 @@ export class WorkspaceFileManager {
     if (workspaceFolders && workspaceFolders.length > 0) {
       const rootFolder = workspaceFolders[0];
       
-      // Add two entries for the root folder with different names
-      // folders.unshift(
-      //   {
-      //     uri: rootFolder.uri.toString(),
-      //     path: rootFolder.uri.fsPath,
-      //     name: "root",
-      //     relativePath: "./"
-      //   }
-      // );
-      // folders.push(
-      //   {
-      //     uri: rootFolder.uri.toString(),
-      //     path: rootFolder.uri.fsPath,
-      //     name: "./",
-      //     relativePath: "./"
-      //   }
-      // );9
+      folders.push(
+        {
+          uri: rootFolder.uri.toString(),
+          path: rootFolder.uri.fsPath,
+          name: rootFolder.name,
+          relativePath: rootFolder.name
+        }
+      );
     }
-    
     return folders;
   }
 
@@ -375,7 +365,6 @@ export class WorkspaceFileManager {
    */
   private async _refreshCache(): Promise<void> {
     try {
-      console.log("R2P: Refreshing cache");
       // Clear existing caches
       this.filePathCache.clear();
       this.folderPathCache.clear();

@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { WorkspaceFileManager } from "./WorkspaceFileManager";
 import { PromptGenerator } from "./PromptGenerator";
-import { DEFAULT_PROMPT_TEMPLATE, DEFAULT_FILE_TEMPLATE } from './defaultTemplate';
+import { TemplateManager } from './TemplateManager';
 
 /**
  * Handles communication between the webview and VSCode extension
@@ -13,6 +13,7 @@ export class WebviewMessageHandler {
   private _refreshCallback: () => Promise<void>;
   private _messageListener?: vscode.Disposable;
   private _activeStatusBarMessages: vscode.Disposable[] = [];
+  private _templateManager: TemplateManager;
 
   constructor(
     webviewView: vscode.WebviewView,
@@ -24,6 +25,7 @@ export class WebviewMessageHandler {
     this._fileManager = fileManager;
     this._promptGenerator = promptGenerator;
     this._refreshCallback = refreshCallback;
+    this._templateManager = new TemplateManager(); // No parameters needed
 
     // Set up event listeners
     this._setupMessageListeners();
@@ -51,7 +53,11 @@ export class WebviewMessageHandler {
           break;
           
         case "copyWithContext":
-          await this._handleCopyWithContextRequest(message.text, message.mentions);
+          await this._handleCopyWithContextRequest(
+            message.text, 
+            message.mentions, 
+            message.source || 'editor' // Use provided source or default to 'editor'
+          );
           break;
           
         case "showMessage":
@@ -93,9 +99,19 @@ export class WebviewMessageHandler {
 
 
   // Handle a request to copy prompt with context
-  private async _handleCopyWithContextRequest(userText: string, mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>): Promise<void> {
+  private async _handleCopyWithContextRequest(
+    userText: string, 
+    mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>,
+    source: 'editor' | 'treeView' = 'editor' // Default to editor for backward compatibility
+  ): Promise<void> {
     try {
-      const prompt = await this._promptGenerator.generatePrompt(userText, mentions);
+      // Pass the source information directly to the prompt generator
+      const prompt = await this._promptGenerator.generatePrompt(
+        userText, 
+        mentions, 
+        { source }
+      );
+      
       await vscode.env.clipboard.writeText(prompt);
       const statusBarMessage = vscode.window.setStatusBarMessage("Prompt copied to clipboard!");
       this._activeStatusBarMessages.push(statusBarMessage);
@@ -132,12 +148,20 @@ export class WebviewMessageHandler {
         await config.update('maxFileSizeKB', settings.maxFileSizeKB, vscode.ConfigurationTarget.Global);
       }
       
-      if (settings.promptTemplate !== undefined) {
-        await config.update('promptTemplate', settings.promptTemplate, vscode.ConfigurationTarget.Global);
+      // Convert from TipTap document to string before saving
+      if (settings.editorPromptTemplate) {
+        const templateString = TemplateManager.documentToString(settings.editorPromptTemplate);
+        await config.update('editorTemplateString', templateString, vscode.ConfigurationTarget.Global);
       }
       
-      if (settings.fileTemplate !== undefined) {
-        await config.update('fileTemplate', settings.fileTemplate, vscode.ConfigurationTarget.Global);
+      if (settings.treeViewPromptTemplate) {
+        const templateString = TemplateManager.documentToString(settings.treeViewPromptTemplate);
+        await config.update('treeViewTemplateString', templateString, vscode.ConfigurationTarget.Global);
+      }
+      
+      if (settings.fileTemplate) {
+        const templateString = TemplateManager.documentToString(settings.fileTemplate);
+        await config.update('fileTemplateString', templateString, vscode.ConfigurationTarget.Global);
       }
       
       this._webviewView.webview.postMessage({ 
@@ -164,17 +188,26 @@ export class WebviewMessageHandler {
       // Get the setting from the configuration
       const config = vscode.workspace.getConfiguration('repo2prompt');
       
-      const promptTemplate = config.get('promptTemplate');
-      const fileTemplate = config.get('fileTemplate');
+      // Load template strings
+      const templates = await this._templateManager.loadTemplates();
       
+      // Verify templates contain values (don't proceed with undefined templates)
+      if (!templates.editorTemplate || !templates.treeViewTemplate || !templates.fileTemplate) {
+        throw new Error('One or more templates are undefined');
+      }
+      
+      // Convert to TipTap documents for the UI
+      const editorPromptTemplate = TemplateManager.stringToDocument(templates.editorTemplate);
+      const treeViewPromptTemplate = TemplateManager.stringToDocument(templates.treeViewTemplate);
+      const fileTemplate = TemplateManager.stringToDocument(templates.fileTemplate);
+      
+      // Create settings object with fallbacks for everything
       const settings = {
-        excludeHiddenDirectories: config.get('excludeHiddenDirectories'),
+        excludeHiddenDirectories: config.get('excludeHiddenDirectories', true),
         maxFileSizeKB: config.get('maxFileSizeKB', 100),
-        // Check if the template is an empty object or missing
-        promptTemplate: (!promptTemplate || Object.keys(promptTemplate).length === 0) ? 
-                        DEFAULT_PROMPT_TEMPLATE : promptTemplate,
-        fileTemplate: (!fileTemplate || Object.keys(fileTemplate).length === 0) ? 
-                      DEFAULT_FILE_TEMPLATE : fileTemplate
+        editorPromptTemplate,
+        treeViewPromptTemplate,
+        fileTemplate
       };
       
       this._webviewView.webview.postMessage({ 
@@ -183,24 +216,40 @@ export class WebviewMessageHandler {
       });
     } catch (error) {
       console.error(`Error getting settings:`, error);
+      
+      // On error, send default templates directly
+      const defaultTemplates = TemplateManager.getDefaultTemplates();
+      
+      const fallbackSettings = {
+        excludeHiddenDirectories: true,
+        maxFileSizeKB: 100,
+        editorPromptTemplate: defaultTemplates.editorTemplate,
+        treeViewPromptTemplate: defaultTemplates.treeViewTemplate,
+        fileTemplate: defaultTemplates.fileTemplate
+      };
+      
       this._webviewView.webview.postMessage({ 
         command: "settings",
-        error: (error as Error).message
+        settings: fallbackSettings
       });
       
-      vscode.window.showErrorMessage("Failed to get settings: " + (error as Error).message);
+      vscode.window.showErrorMessage("Using default templates due to settings error: " + (error as Error).message);
     }
   }
 
   // Handle a request to get the default settings
   private async _handleGetDefaultSettingsRequest(): Promise<void> {
     try {
+      // Get defaults from the TemplateManager
+      const defaultTemplates = TemplateManager.getDefaultTemplates();
+      
       // Create default settings object
       const defaultSettings = {
         excludeHiddenDirectories: true,
         maxFileSizeKB: 100,
-        promptTemplate: DEFAULT_PROMPT_TEMPLATE,
-        fileTemplate: DEFAULT_FILE_TEMPLATE
+        editorPromptTemplate: defaultTemplates.editorTemplate,
+        treeViewPromptTemplate: defaultTemplates.treeViewTemplate,
+        fileTemplate: defaultTemplates.fileTemplate
       };
       
       this._webviewView.webview.postMessage({ 

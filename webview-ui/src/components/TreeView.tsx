@@ -485,6 +485,7 @@ const TreeView: React.FC<TreeViewProps> = ({
       command: "copyWithContext",
       text: "",
       mentions: mentions,
+      source: "treeView"
     });
   }, [selectedPaths, pathToItem]);
 

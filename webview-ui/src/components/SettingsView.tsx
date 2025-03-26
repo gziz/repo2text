@@ -1,15 +1,8 @@
 import React from "react";
 import { ResetIcon } from "./Icons";
 import "./SettingsView.css";
-import TemplateEditor, { fileTemplateVariables, promptTemplateVariables } from "./TemplateEditor/TemplateEditor";
-
-// Define settings interface
-interface Settings {
-  excludeHiddenDirectories: boolean;
-  maxFileSizeKB: number;
-  promptTemplate: any; // TipTap JSON document
-  fileTemplate: any; // TipTap JSON document for file content formatting
-}
+import TemplateEditor, { fileTemplateVariables, editorTemplateVariables, treeTemplateVariables } from "./TemplateEditor/TemplateEditor";
+import { Settings } from "../types/types";
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -55,12 +48,23 @@ const SettingsView: React.FC<SettingsViewProps> = ({
     onUpdateSettings(updatedSettings);
   };
 
-  const handleTemplateChange = (template: any) => {
+  const handleEditorTemplateChange = (template: any) => {
     if (!settings) return;
 
     const updatedSettings = {
       ...settings,
-      promptTemplate: template,
+      editorPromptTemplate: template,
+    };
+
+    onUpdateSettings(updatedSettings);
+  };
+
+  const handleTreeViewTemplateChange = (template: any) => {
+    if (!settings) return;
+
+    const updatedSettings = {
+      ...settings,
+      treeViewPromptTemplate: template,
     };
 
     onUpdateSettings(updatedSettings);
@@ -146,23 +150,41 @@ const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
+        {/* Editor Prompt Template */}
         <div className="settings-item-column">
           <div className="settings-item-label-container">
-            <label className="settings-item-label">Prompt Template</label>
+            <label className="settings-item-label">Editor Prompt Template</label>
             <div className="settings-item-description">
-              Customize how prompts are formatted. Available: <code>fileMap</code>,{" "}
-              <code>fileContents</code>, <code>userText</code>.
+              Customize how prompts are formatted from the editor. Available: <code>fileMap</code>, <code>fileContents</code>, <code>userText</code>.
             </div>
           </div>
           <div className="template-editor-container">
             <TemplateEditor
-              initialContent={settings.promptTemplate}
-              onChange={handleTemplateChange}
-              variables={promptTemplateVariables}
+              initialContent={settings.editorPromptTemplate}
+              onChange={handleEditorTemplateChange}
+              variables={editorTemplateVariables}
             />
           </div>
         </div>
 
+        {/* TreeView Prompt Template */}
+        <div className="settings-item-column">
+          <div className="settings-item-label-container">
+            <label className="settings-item-label">TreeView Prompt Template</label>
+            <div className="settings-item-description">
+              Customize how prompts are formatted from the tree view. Available: <code>fileMap</code>, <code>fileContents</code>.
+            </div>
+          </div>
+          <div className="template-editor-container">
+            <TemplateEditor
+              initialContent={settings.treeViewPromptTemplate}
+              onChange={handleTreeViewTemplateChange}
+              variables={treeTemplateVariables}
+            />
+          </div>
+        </div>
+
+        {/* File Content Template */}
         <div className="settings-item-column">
           <div className="settings-item-label-container">
             <label className="settings-item-label">File Content Template</label>

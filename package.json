@@ -77,20 +77,20 @@
         },
         "repo2prompt.maxFileSizeKB": {
           "type": "number",
-          "default": 100,
-          "minimum": 1,
-          "maximum": 1000,
+          "default": 500,
           "description": "Maximum file size (in KB) to include in prompts. Files larger than this will be excluded to avoid exceeding token limits."
         },
-        "repo2prompt.promptTemplate": {
-          "type": "object",
-          "default": null,
-          "description": "Template for formatting prompts. A default template is provided by the extension."
+        "repo2prompt.editorTemplateString": {
+          "type": "string",
+          "description": "Template string for formatting prompts from the editor. Use {{fileMap}}, {{fileContents}}, and {{userText}} as variables."
         },
-        "repo2prompt.fileTemplate": {
-          "type": "object",
-          "default": null,
-          "description": "Template for formatting individual files in the prompt. This controls how each file is displayed within the fileContents section."
+        "repo2prompt.treeViewTemplateString": {
+          "type": "string",
+          "description": "Template string for formatting prompts from the tree view. Use {{fileMap}} and {{fileContents}} as variables."
+        },
+        "repo2prompt.fileTemplateString": {
+          "type": "string",
+          "description": "Template string for formatting individual files in the prompt. Use {{filePath}} and {{fileContent}} as variables."
         }
       }
     }

@@ -14,10 +14,15 @@ export const TEMPLATE_TIPPY_DIV_ID = "template-tippy-js-div";
 
 // Format template variables as mentions
 // Default template variables for the prompt template
-export const promptTemplateVariables = [
+export const editorTemplateVariables = [
   { id: "fileMap", label: "fileMap", description: "File structure tree" },
   { id: "fileContents", label: "fileContents", description: "All file contents" },
   { id: "userText", label: "userText", description: "User instructions" },
+];
+
+export const treeTemplateVariables = [
+  { id: "fileMap", label: "fileMap", description: "File structure tree" },
+  { id: "fileContents", label: "fileContents", description: "All file contents" },
 ];
 
 // Template variables for the file template
@@ -35,7 +40,7 @@ interface TemplateEditorProps {
 const TemplateEditor: React.FC<TemplateEditorProps> = ({
   initialContent,
   onChange,
-  variables = promptTemplateVariables, // Default to prompt variables if not specified
+  variables = editorTemplateVariables, // Default to prompt variables if not specified
 }) => {
   const isFirstRender = useRef(true);
 

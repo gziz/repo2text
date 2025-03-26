@@ -1,20 +1,26 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { WorkspaceFileManager } from "./WorkspaceFileManager";
-import { DEFAULT_PROMPT_TEMPLATE, DEFAULT_FILE_TEMPLATE } from './defaultTemplate';
+import { TemplateManager } from './TemplateManager';
 
 /**
  * Handles the generation of prompts with context from the workspace
  */
 export class PromptGenerator {
   private _fileManager: WorkspaceFileManager;
+  private _templateManager: TemplateManager;
 
   constructor(fileManager: WorkspaceFileManager) {
     this._fileManager = fileManager;
+    this._templateManager = new TemplateManager();
   }
 
   // Generate a prompt with file context based on the mentioned files/folders
-  public async generatePrompt(userText: string, mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>): Promise<string> {
+  public async generatePrompt(
+    userText: string, 
+    mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>,
+    options: { source?: 'editor' | 'treeView' } = { source: 'editor' }
+  ): Promise<string> {
     try {
       // Get workspace root path
       const workspaceRootPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '';
@@ -25,8 +31,8 @@ export class PromptGenerator {
       // Generate file contents using the ordered paths
       const fileContentsStr = await this._generateFileContentSection(mentions, orderedFilePaths);
       
-      // Format the final prompt
-      const prompt = this._formatPrompt(fileMapStr, fileContentsStr, userText);
+      // Format the final prompt with the appropriate template
+      const prompt = await this._formatPrompt(fileMapStr, fileContentsStr, userText, options.source);
       return prompt;
 
     } catch (error) {
@@ -245,127 +251,39 @@ export class PromptGenerator {
   }
 
   // Format the final prompt with file map, contents and user instructions
-  private _formatPrompt(fileMap: string, fileContents: Array<{path: string, content: string}>, userText: string): string {
-    // Get template from settings or use default
-    const configuration = vscode.workspace.getConfiguration('repo2prompt');
-    const customTemplate = configuration.get<any>('promptTemplate');
-    
-    // If there's no custom template, use the default formatting
-    if (!customTemplate || !customTemplate.type || customTemplate.type !== 'doc') {
-      // Use the default template object instead of hardcoded strings
-      const defaultTemplate = DEFAULT_PROMPT_TEMPLATE;
-      
-      return this._formatWithTemplate(defaultTemplate, {
-        fileMap,
-        fileContents,
-        userText
-      });
-    }
-    
-    // Format with the custom template
-    return this._formatWithTemplate(customTemplate, {
-      fileMap,
-      fileContents,
-      userText
-    });
-  }
-  
-  // Helper to format prompt using a template
-  private _formatWithTemplate(template: any, variables: { 
+  private async _formatPrompt(
     fileMap: string, 
     fileContents: Array<{path: string, content: string}>, 
-    userText: string 
-  }): string {
-    // Get file template from settings or use default
-    const configuration = vscode.workspace.getConfiguration('repo2prompt');
-    const customFileTemplate = configuration.get<any>('fileTemplate');
+    userText: string,
+    source: 'editor' | 'treeView' = 'editor'
+  ): Promise<string> {
+    // Get template strings from TemplateManager
+    const templates = await this._templateManager.loadTemplates();
+    
+    // Select the right template based on source
+    const templateString = source === 'treeView' 
+      ? templates.treeViewTemplate 
+      : templates.editorTemplate;
     
     // Convert file contents to string format using template
     let fileContentsStr = '';
-    for (const file of variables.fileContents) {
-      // If there's a custom file template, use it, otherwise use the default
-      if (customFileTemplate && customFileTemplate.type && customFileTemplate.type === 'doc') {
-        fileContentsStr += this._formatFileWithTemplate(customFileTemplate, {
-          filePath: file.path,
-          fileContent: file.content
-        });
-      } else {
-        fileContentsStr += this._formatFileWithTemplate(DEFAULT_FILE_TEMPLATE, {
-          filePath: file.path,
-          fileContent: file.content
-        });
-      }
+    for (const file of fileContents) {
+      // Use templates.fileTemplate
+      const fileVars = {
+        filePath: file.path,
+        fileContent: file.content
+      };
+      
+      fileContentsStr += TemplateManager.formatTemplate(templates.fileTemplate, fileVars);
     }
     
-    // Create variables map for template formatting
-    const templateVars = {
-      'fileMap': variables.fileMap,
-      'fileContents': fileContentsStr,
-      'userText': variables.userText
+    // Format the main template
+    const variables = {
+      fileMap: fileMap,
+      fileContents: fileContentsStr,
+      userText: userText
     };
     
-    // Use existing formatter functions
-    return this._formatDocument(template, templateVars);
-  }
-  
-  // Helper to format a single file using a template
-  private _formatFileWithTemplate(template: any, variables: {
-    filePath: string,
-    fileContent: string
-  }): string {
-    const templateVars = {
-      'filePath': variables.filePath,
-      'fileContent': variables.fileContent
-    };
-    
-    // Use the existing document formatter
-    return this._formatDocument(template, templateVars);
-  }
-  
-  // Format a TipTap document with variables
-  private _formatDocument(doc: any, variables: { [key: string]: string }): string {
-    let result = '';
-    
-    if (!doc.content || !Array.isArray(doc.content)) {
-      return result;
-    }
-    
-    // Process each node in the document
-    for (const node of doc.content) {
-      if (node.type === 'paragraph') {
-        // Format the paragraph
-        const paragraphText = this._formatParagraph(node, variables);
-        
-        // Add the paragraph text (which might be empty for blank lines)
-        // Always add a newline after each paragraph, even empty ones
-        result += paragraphText + '\n';
-      }
-    }
-    
-    return result;
-  }
-  
-  // Format a paragraph node
-  private _formatParagraph(paragraph: any, variables: { [key: string]: string }): string {
-    // If paragraph has no content, return empty string (will still get a newline in formatDocument)
-    if (!paragraph.content || !Array.isArray(paragraph.content) || paragraph.content.length === 0) {
-      return '';
-    }
-    
-    let result = '';
-    
-    // Process each inline node
-    for (const inline of paragraph.content) {
-      if (inline.type === 'text') {
-        result += inline.text || '';
-      } else if (inline.type === 'mention' && inline.attrs) {
-        const variableId = inline.attrs.id;
-        if (variables[variableId]) {
-          result += variables[variableId];
-        }
-      }
-    }
-    
-    return result;
+    return TemplateManager.formatTemplate(templateString, variables);
   }
 } 

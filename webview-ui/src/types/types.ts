@@ -27,7 +27,8 @@ export type View = "editor" | "settings";
 export interface Settings {
   excludeHiddenDirectories: boolean;
   maxFileSizeKB: number;
-  promptTemplate: any; // TipTap JSON document
+  editorPromptTemplate: any; // TipTap JSON document
+  treeViewPromptTemplate: any; // TipTap JSON document
   fileTemplate: any; // TipTap JSON document for file content formatting
 }
 
