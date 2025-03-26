@@ -13,7 +13,6 @@ export const COMMON_EXCLUDED_DIRS = [
   'obj',
   'target',
   '.idea',
-  '.vs',
   'vendor',
   'coverage',
   '__pycache__'

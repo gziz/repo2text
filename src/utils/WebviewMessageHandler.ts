@@ -204,7 +204,7 @@ export class WebviewMessageHandler {
       // Create settings object with fallbacks for everything
       const settings = {
         excludeHiddenDirectories: config.get('excludeHiddenDirectories', true),
-        maxFileSizeKB: config.get('maxFileSizeKB', 100),
+        maxFileSizeKB: config.get('maxFileSizeKB', 500),
         editorPromptTemplate,
         treeViewPromptTemplate,
         fileTemplate
@@ -222,7 +222,7 @@ export class WebviewMessageHandler {
       
       const fallbackSettings = {
         excludeHiddenDirectories: true,
-        maxFileSizeKB: 100,
+        maxFileSizeKB: 500,
         editorPromptTemplate: defaultTemplates.editorTemplate,
         treeViewPromptTemplate: defaultTemplates.treeViewTemplate,
         fileTemplate: defaultTemplates.fileTemplate
@@ -246,7 +246,7 @@ export class WebviewMessageHandler {
       // Create default settings object
       const defaultSettings = {
         excludeHiddenDirectories: true,
-        maxFileSizeKB: 100,
+        maxFileSizeKB: 500,
         editorPromptTemplate: defaultTemplates.editorTemplate,
         treeViewPromptTemplate: defaultTemplates.treeViewTemplate,
         fileTemplate: defaultTemplates.fileTemplate
