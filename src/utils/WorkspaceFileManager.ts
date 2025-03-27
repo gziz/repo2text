@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fg from "fast-glob";
-import { COMMON_EXCLUDED_DIRS, BINARY_FILE_EXTENSIONS } from "./constants";
+import { COMMON_EXCLUDED_DIRS, EXCLUDED_FILE_EXTENSIONS } from "./constants";
 import { WorkspaceFolder, WorkspaceFile } from "./types";
 
 /**
@@ -30,35 +30,99 @@ export class WorkspaceFileManager {
   // Event that can be subscribed to
   public readonly onCacheChanged = this._onCacheChanged.event;
 
+  // Add a new private property to track initialization
+  private effectiveExcludedDirsInitialized: boolean = false;
+
   constructor() {
-    // Initialize the effective excluded directories
-    this.updateEffectiveExcludedDirs();
-    // Don't automatically start watching file system changes
-    // We'll do this explicitly when the webview is visible
-    
     // Set up persistent lightweight watchers
     this.setupLightFileSystemWatchers();
     
     // Watch for configuration changes
     vscode.workspace.onDidChangeConfiguration(event => {
-      if (event.affectsConfiguration('repo2prompt.excludeHiddenDirectories')) {
-        this.updateEffectiveExcludedDirs();
-      }
+        if (event.affectsConfiguration('repo2prompt.excludeHiddenDirectories') ||
+            event.affectsConfiguration('repo2prompt.respectGitignore')) {
+            this.updateEffectiveExcludedDirs();
+        }
     });
+  }
+
+  // Add static factory method
+  public static async create(): Promise<WorkspaceFileManager> {
+    const instance = new WorkspaceFileManager();
+    // Initialize the effective excluded directories
+    await instance.updateEffectiveExcludedDirs();
+    instance.effectiveExcludedDirsInitialized = true;
+    return instance;
   }
 
   /**
    * Update the effective excluded directories based on current configuration
    */
-  private updateEffectiveExcludedDirs(): void {
+  private async updateEffectiveExcludedDirs(): Promise<void> {
     // Check if we should exclude hidden directories
     this.excludeHiddenDirectories = vscode.workspace.getConfiguration('repo2prompt').get('excludeHiddenDirectories', true);
+    const respectGitignore = vscode.workspace.getConfiguration('repo2prompt').get('respectGitignore', true);
+
     this.globalIgnorePatterns = [
-      ...COMMON_EXCLUDED_DIRS.map(dir => `**/${dir}/**`),
-      ...BINARY_FILE_EXTENSIONS.map(ext => `**/*${ext}`)
+        ...COMMON_EXCLUDED_DIRS.map(dir => `**/${dir}/**`),
+        ...EXCLUDED_FILE_EXTENSIONS.map(ext => `**/*${ext}`)
     ];
+
     if (this.excludeHiddenDirectories) {
-      this.globalIgnorePatterns.push('**/.*/**');
+        this.globalIgnorePatterns.push('**/.*/**');
+    }
+
+    if (respectGitignore) {
+        await this.addGitignorePatterns();
+    }
+    console.log('Global ignore patterns:', this.globalIgnorePatterns);
+  }
+
+  private async addGitignorePatterns(): Promise<void> {
+    try {
+        const workspaceRootPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath;
+        if (!workspaceRootPath) return;
+
+        const gitignorePath = path.join(workspaceRootPath, '.gitignore');
+        const gitignoreUri = vscode.Uri.file(gitignorePath);
+
+        try {
+            const content = await vscode.workspace.fs.readFile(gitignoreUri);
+            let patterns: string[] = [];
+            
+            new TextDecoder().decode(content)
+                .split('\n')
+                .map(line => line.trim())
+                // Filter out comments and empty lines
+                .filter(line => line && !line.startsWith('#'))
+                // Convert patterns to glob format
+                .forEach(pattern => {
+                    // Remove leading slash if present
+                    pattern = pattern.replace(/^\//, '');
+                    
+                    // Handle directory patterns (those ending with a slash)
+                    if (pattern.endsWith('/')) {
+                        // Remove the trailing slash
+                        const dirPattern = pattern.slice(0, -1);
+                        // Add two patterns: one for the directory itself and one for its contents
+                        patterns.push(`**/${dirPattern}`);
+                        patterns.push(`**/${dirPattern}/**`);
+                    } else {
+                        // If pattern doesn't start with **, add it
+                        if (!pattern.startsWith('**/')) {
+                            pattern = `**/${pattern}`;
+                        }
+                        patterns.push(pattern);
+                    }
+                });
+
+            this.globalIgnorePatterns.push(...patterns);
+        } catch (error) {
+            // .gitignore file doesn't exist or can't be read - that's fine, just continue
+            console.log('.gitignore file not found or not readable');
+        }
+    } catch (error) {
+        console.error('Error processing .gitignore patterns:', error);
     }
   }
 
@@ -66,9 +130,14 @@ export class WorkspaceFileManager {
    * Initialize the file and folder cache
    */
   public async initialize(): Promise<void> {
+    if (!this.effectiveExcludedDirsInitialized) {
+        await this.updateEffectiveExcludedDirs();
+        this.effectiveExcludedDirsInitialized = true;
+    }
+
     if (!this.cacheInitialized) {
-      this.cacheInitialized = true;
-      await this.refreshCache();
+        this.cacheInitialized = true;
+        await this.refreshCache();
     }
   }
 
@@ -192,11 +261,27 @@ export class WorkspaceFileManager {
       this.hasChangedSinceLastView = true;
     });
 
+    // Watch for .gitignore changes
+    const gitignoreWatcher = vscode.workspace.createFileSystemWatcher('**/.gitignore');
+    gitignoreWatcher.onDidChange(() => {
+        this.updateEffectiveExcludedDirs();
+        this.hasChangedSinceLastView = true;
+    });
+    gitignoreWatcher.onDidCreate(() => {
+        this.updateEffectiveExcludedDirs();
+        this.hasChangedSinceLastView = true;
+    });
+    gitignoreWatcher.onDidDelete(() => {
+        this.updateEffectiveExcludedDirs();
+        this.hasChangedSinceLastView = true;
+    });
+
     this.lightFileWatcherDisposables.push(
       createWatcher,
       deleteWatcher,
       renameWatcher,
-      folderWatcher
+      folderWatcher,
+      gitignoreWatcher
     );
   }
 
@@ -364,6 +449,11 @@ export class WorkspaceFileManager {
    * Internal implementation of cache refresh
    */
   private async _refreshCache(): Promise<void> {
+    if (!this.effectiveExcludedDirsInitialized) {
+        await this.updateEffectiveExcludedDirs();
+        this.effectiveExcludedDirsInitialized = true;
+    }
+
     try {
       // Clear existing caches
       this.filePathCache.clear();
@@ -415,6 +505,7 @@ export class WorkspaceFileManager {
       }
       
       this.cacheInitialized = true;
+
       
       // Notify subscribers that workspace files have changed
       this._onCacheChanged.fire();
@@ -451,7 +542,7 @@ export class WorkspaceFileManager {
     const fileExt = path.extname(filePath).toLowerCase();
     
     // Skip binary files
-    if (BINARY_FILE_EXTENSIONS.includes(fileExt)) {
+    if (EXCLUDED_FILE_EXTENSIONS.includes(fileExt)) {
       return true;
     }
 

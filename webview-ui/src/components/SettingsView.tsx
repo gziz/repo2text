@@ -129,6 +129,26 @@ const SettingsView: React.FC<SettingsViewProps> = ({
 
           <div className="settings-item-row">
             <div className="settings-item-label-container">
+              <label htmlFor="respectGitignore" className="settings-item-label">
+                Respect .gitignore
+              </label>
+              <div className="settings-item-description">
+                When enabled, files and directories listed in .gitignore will be excluded from search results.
+              </div>
+            </div>
+            <div className="settings-item-input">
+              <input
+                type="checkbox"
+                id="respectGitignore"
+                name="respectGitignore"
+                checked={settings.respectGitignore}
+                onChange={handleInputChange}
+              />
+            </div>
+          </div>
+
+          <div className="settings-item-row">
+            <div className="settings-item-label-container">
               <label htmlFor="maxFileSizeKB" className="settings-item-label">
                 Max File Size (KB)
               </label>

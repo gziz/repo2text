@@ -148,6 +148,10 @@ export class WebviewMessageHandler {
         await config.update('maxFileSizeKB', settings.maxFileSizeKB, vscode.ConfigurationTarget.Global);
       }
       
+      if (settings.respectGitignore !== undefined) {
+        await config.update('respectGitignore', settings.respectGitignore, vscode.ConfigurationTarget.Global);
+      }
+      
       // Convert from TipTap document to string before saving
       if (settings.editorPromptTemplate) {
         const templateString = TemplateManager.documentToString(settings.editorPromptTemplate);
@@ -205,6 +209,7 @@ export class WebviewMessageHandler {
       const settings = {
         excludeHiddenDirectories: config.get('excludeHiddenDirectories', true),
         maxFileSizeKB: config.get('maxFileSizeKB', 500),
+        respectGitignore: config.get('respectGitignore', true),
         editorPromptTemplate,
         treeViewPromptTemplate,
         fileTemplate
@@ -223,6 +228,7 @@ export class WebviewMessageHandler {
       const fallbackSettings = {
         excludeHiddenDirectories: true,
         maxFileSizeKB: 500,
+        respectGitignore: true,
         editorPromptTemplate: defaultTemplates.editorTemplate,
         treeViewPromptTemplate: defaultTemplates.treeViewTemplate,
         fileTemplate: defaultTemplates.fileTemplate
@@ -247,6 +253,7 @@ export class WebviewMessageHandler {
       const defaultSettings = {
         excludeHiddenDirectories: true,
         maxFileSizeKB: 500,
+        respectGitignore: true,
         editorPromptTemplate: defaultTemplates.editorTemplate,
         treeViewPromptTemplate: defaultTemplates.treeViewTemplate,
         fileTemplate: defaultTemplates.fileTemplate

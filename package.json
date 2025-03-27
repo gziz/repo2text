@@ -91,6 +91,11 @@
         "repo2prompt.fileTemplateString": {
           "type": "string",
           "description": "Template string for formatting individual files in the prompt. Use {{filePath}} and {{fileContent}} as variables."
+        },
+        "repo2prompt.respectGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Respect .gitignore patterns when scanning workspace files"
         }
       }
     }

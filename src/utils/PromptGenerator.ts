@@ -15,6 +15,12 @@ export class PromptGenerator {
     this._templateManager = new TemplateManager();
   }
 
+  // Add static factory method here too
+  public static async create(): Promise<PromptGenerator> {
+    const fileManager = await WorkspaceFileManager.create();
+    return new PromptGenerator(fileManager);
+  }
+
   // Generate a prompt with file context based on the mentioned files/folders
   public async generatePrompt(
     userText: string, 
