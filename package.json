@@ -72,7 +72,7 @@
       "properties": {
         "repo2prompt.excludeHiddenDirectories": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Whether to exclude hidden directories (starting with '.*') from search results"
         },
         "repo2prompt.maxFileSizeKB": {

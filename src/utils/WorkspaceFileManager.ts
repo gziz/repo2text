@@ -23,9 +23,9 @@ export class WorkspaceFileManager {
   // Event emitters for cache changes
   private _onCacheChanged = new vscode.EventEmitter<void>();
   // Effective excluded directories (combining static list with configuration)
-  private excludeHiddenDirectories: boolean = true;
+  private excludeHiddenDirectories: boolean = false;
 
-  private globalIgnorePatterns: string[] = [];
+  private globalIgnorePatterns: Set<string> = new Set();
 
   // Event that can be subscribed to
   public readonly onCacheChanged = this._onCacheChanged.event;
@@ -63,13 +63,13 @@ export class WorkspaceFileManager {
     this.excludeHiddenDirectories = vscode.workspace.getConfiguration('repo2prompt').get('excludeHiddenDirectories', true);
     const respectGitignore = vscode.workspace.getConfiguration('repo2prompt').get('respectGitignore', true);
 
-    this.globalIgnorePatterns = [
+    this.globalIgnorePatterns = new Set([
         ...COMMON_EXCLUDED_DIRS.map(dir => `**/${dir}/**`),
         ...EXCLUDED_FILE_EXTENSIONS.map(ext => `**/*${ext}`)
-    ];
+    ]);
 
     if (this.excludeHiddenDirectories) {
-        this.globalIgnorePatterns.push('**/.*/**');
+        this.globalIgnorePatterns.add('**/.*/**');
     }
 
     if (respectGitignore) {
@@ -116,7 +116,7 @@ export class WorkspaceFileManager {
                     }
                 });
 
-            this.globalIgnorePatterns.push(...patterns);
+            patterns.forEach(pattern => this.globalIgnorePatterns.add(pattern));
         } catch (error) {
             // .gitignore file doesn't exist or can't be read - that's fine, just continue
             console.log('.gitignore file not found or not readable');
@@ -471,7 +471,7 @@ export class WorkspaceFileManager {
         const startTime = Date.now();
       
         // Get all entries using the shared method
-        const entries = await this._getFilesWithGlob(folder.uri.fsPath, false, this.globalIgnorePatterns);
+        const entries = await this._getFilesWithGlob(folder.uri.fsPath, false, Array.from(this.globalIgnorePatterns));
 
         // Process each entry
         for (const entry of entries) {
@@ -602,7 +602,7 @@ export class WorkspaceFileManager {
     
     try {
       // Use internal method to get all entries
-      const entries = await this._getFilesWithGlob(folderPath, onlyFiles, this.globalIgnorePatterns);
+      const entries = await this._getFilesWithGlob(folderPath, onlyFiles, Array.from(this.globalIgnorePatterns));
       
       // Filter by file size if maxFileSize is specified
       if (maxFileSize) {

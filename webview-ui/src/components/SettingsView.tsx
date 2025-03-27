@@ -113,7 +113,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                 Exclude Hidden Directories
               </label>
               <div className="settings-item-description">
-                When enabled, directories starting with "." will be excluded (highly recommended).
+                When enabled, directories starting with "." will be excluded.
               </div>
             </div>
             <div className="settings-item-input">
@@ -133,7 +133,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                 Respect .gitignore
               </label>
               <div className="settings-item-description">
-                When enabled, files and directories listed in .gitignore will be excluded from search results.
+                Exclude files and directories listed in .gitignore from search results. (Highly recommended to avoid slow performance)
               </div>
             </div>
             <div className="settings-item-input">
