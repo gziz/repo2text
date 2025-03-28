@@ -34,14 +34,13 @@ export interface Settings {
 }
 
 export interface TreeNode {
-  id: string;
+  id: string;                   // Typically the full path
   name: string;
   path: string;
   type: "file" | "folder";
+  children: TreeNode[];
   level: number;
-  expanded?: boolean;
-  children?: TreeNode[];
-  parent?: string;
-  selected?: boolean;
-  indeterminate?: boolean; // For partially selected folders
+  expanded: boolean;
+  selected: boolean;
+  indeterminate: boolean;
 }

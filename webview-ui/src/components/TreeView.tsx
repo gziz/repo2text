@@ -1,58 +1,18 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { vscode } from "../utilities/vscode";
-import "./TreeView.css";
-import {
-  VSCodeButton,
-  VSCodeTextField,
-} from "@vscode/webview-ui-toolkit/react";
-import { 
-  ChevronRightIcon, 
-  ChevronDownIcon, 
-  FolderIcon, 
-  FolderOpenedIcon, 
-  CollapseAllIcon, 
-  CloseIcon 
-} from '../icons';
-import FileIconComponent from './FileIcon';
+import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react";
 import Fuse from "fuse.js";
-
-// -------------------------------------------------------
-// Types
-// -------------------------------------------------------
-export interface WorkspaceFile {
-  uri: string;
-  path: string;       // Full path ("/Users/.../myFolder/myFile.ts")
-  name: string;       // Just the file name ("myFile.ts")
-  relativePath: string;
-}
-
-export interface WorkspaceFolder {
-  uri: string;
-  path: string;       // Full path ("/Users/.../myFolder")
-  name: string;       // Just the folder name ("myFolder")
-  relativePath: string;
-}
-
-export interface MentionItem {
-  id: string;         // Could be relativePath
-  label: string;      // Display name
-  type: "file" | "folder" | "provider";
-  description?: string;
-  position?: number;
-}
-
-// TreeNode for our internal hierarchy representation
-export interface TreeNode {
-  id: string;                   // Typically the full path
-  name: string;
-  path: string;
-  type: "file" | "folder";
-  children: TreeNode[];
-  level: number;
-  expanded: boolean;
-  selected: boolean;
-  indeterminate: boolean;
-}
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  CollapseAllIcon,
+  FolderIcon,
+  FolderOpenedIcon,
+} from "../icons";
+import { MentionItem, TreeNode, WorkspaceFile, WorkspaceFolder } from "../types/types";
+import { vscode } from "../utilities/vscode";
+import FileIconComponent from "./FileIcon";
+import "./TreeView.css";
 
 // Props for TreeView
 interface TreeViewProps {
@@ -82,10 +42,7 @@ function getParentPath(fullPath: string): string {
  * Build the entire tree structure (folders+files), linking children to parents.
  * Returns top-level nodes as an array of TreeNode.
  */
-function buildTreeData(
-  folders: WorkspaceFolder[],
-  files: WorkspaceFile[]
-): TreeNode[] {
+function buildTreeData(folders: WorkspaceFolder[], files: WorkspaceFile[]): TreeNode[] {
   const nodeMap = new Map<string, TreeNode>();
 
   // Create nodes for folders
@@ -132,7 +89,15 @@ function buildTreeData(
   // Assign levels and sort children by name
   function assignLevelsAndSort(node: TreeNode, level: number) {
     node.level = level;
-    node.children.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort folders first, then files, both in alphabetical order
+    node.children.sort((a, b) => {
+      // If both are the same type (both folders or both files)
+      if (a.type === b.type) {
+        return a.name.localeCompare(b.name);
+      }
+      // Folders come before files
+      return a.type === "folder" ? -1 : 1;
+    });
     for (const child of node.children) {
       assignLevelsAndSort(child, level + 1);
     }
@@ -159,13 +124,14 @@ function flattenTreeData(nodes: TreeNode[]): TreeNode[] {
   return result;
 }
 
-/** 
- * Build a map of path => array of direct children IDs, 
+/**
+ * Build a map of path => array of direct children IDs,
  * and a map of path => parent ID (or "").
  */
-function buildChildrenMapAndParentMap(
-  baseTree: TreeNode[]
-): { childrenMap: Map<string, string[]>; parentMap: Map<string, string> } {
+function buildChildrenMapAndParentMap(baseTree: TreeNode[]): {
+  childrenMap: Map<string, string[]>;
+  parentMap: Map<string, string>;
+} {
   const childrenMap = new Map<string, string[]>();
   const parentMap = new Map<string, string>();
 
@@ -203,7 +169,7 @@ function buildDisplayTree(
 ): TreeNode[] {
   function cloneAndFilter(node: TreeNode): TreeNode | null {
     // If searching, keep node only if it's in matchingIds or has a matched descendant
-    let keepThisNode = (matchingIds === null) || matchingIds.has(node.id);
+    let keepThisNode = matchingIds === null || matchingIds.has(node.id);
 
     const filteredChildren: TreeNode[] = [];
     for (const child of node.children) {
@@ -329,11 +295,11 @@ const TreeView: React.FC<TreeViewProps> = ({
   useEffect(() => {
     if (searchQuery && fuseSearch) {
       const fuseResults = fuseSearch.search(searchQuery);
-      const matchedIds = new Set<string>(fuseResults.map(r => r.item.id));
-      
+      const matchedIds = new Set<string>(fuseResults.map((r) => r.item.id));
+
       // Get parents of all matched nodes
       const parentsToExpand = new Set<string>();
-      matchedIds.forEach(id => {
+      matchedIds.forEach((id) => {
         let currentId = id;
         let parentId = parentMap.get(currentId);
         while (parentId) {
@@ -342,11 +308,11 @@ const TreeView: React.FC<TreeViewProps> = ({
           parentId = parentMap.get(currentId);
         }
       });
-      
+
       // Add parents to expanded nodes
-      setExpandedNodeIds(prev => {
+      setExpandedNodeIds((prev) => {
         const newSet = new Set(prev);
-        parentsToExpand.forEach(id => newSet.add(id));
+        parentsToExpand.forEach((id) => newSet.add(id));
         return newSet;
       });
     }
@@ -361,7 +327,7 @@ const TreeView: React.FC<TreeViewProps> = ({
     }
 
     const fuseResults = fuseSearch.search(searchQuery);
-    const matchedIds = new Set<string>(fuseResults.map(r => r.item.id));
+    const matchedIds = new Set<string>(fuseResults.map((r) => r.item.id));
     return buildDisplayTree(baseTreeData, expandedNodeIds, selectedPaths, matchedIds);
   }, [baseTreeData, expandedNodeIds, selectedPaths, searchQuery, fuseSearch]);
 
@@ -373,7 +339,7 @@ const TreeView: React.FC<TreeViewProps> = ({
   }, []);
 
   const handleToggleExpand = useCallback((nodeId: string) => {
-    setExpandedNodeIds(prev => {
+    setExpandedNodeIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(nodeId)) {
         newSet.delete(nodeId);
@@ -388,83 +354,82 @@ const TreeView: React.FC<TreeViewProps> = ({
    * BFS to gather all descendants of a given node (including itself).
    * We rely on `childrenMap` to find direct children, then keep going.
    */
-  const gatherDescendants = useCallback((id: string): string[] => {
-    const queue = [id];
-    const all: string[] = [];
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-      all.push(current);
-      const kids = childrenMap.get(current);
-      if (kids) {
-        for (const k of kids) {
-          queue.push(k);
+  const gatherDescendants = useCallback(
+    (id: string): string[] => {
+      const queue = [id];
+      const all: string[] = [];
+      while (queue.length > 0) {
+        const current = queue.shift()!;
+        all.push(current);
+        const kids = childrenMap.get(current);
+        if (kids) {
+          for (const k of kids) {
+            queue.push(k);
+          }
         }
       }
-    }
-    return all;
-  }, [childrenMap]);
+      return all;
+    },
+    [childrenMap]
+  );
 
   /**
-   * If you unselect a node, check if its parent is still selected. 
+   * If you unselect a node, check if its parent is still selected.
    * If none of the parent's children remain selected, remove the parent from selection.
    * Continue up until you reach the root.
    */
-  const cascadeUpUnselect = useCallback((childId: string, selectedSet: Set<string>) => {
-    const parentId = parentMap.get(childId);
-    if (!parentId) return; // if "", no parent
-    if (!selectedSet.has(parentId)) {
-      // parent isn't selected anyway
-      return;
-    }
+  const cascadeUpUnselect = useCallback(
+    (childId: string, selectedSet: Set<string>) => {
+      const parentId = parentMap.get(childId);
+      if (!parentId) return; // if "", no parent
+      if (!selectedSet.has(parentId)) {
+        // parent isn't selected anyway
+        return;
+      }
 
-    // Check parent's children
-    const siblings = childrenMap.get(parentId) || [];
-    const anyChildSelected = siblings.some(sid => selectedSet.has(sid));
+      // Check parent's children
+      const siblings = childrenMap.get(parentId) || [];
+      const anyChildSelected = siblings.some((sid) => selectedSet.has(sid));
 
-    if (!anyChildSelected) {
-      // remove the parent from selection
-      selectedSet.delete(parentId);
-      // then check parent's parent
-      cascadeUpUnselect(parentId, selectedSet);
-    }
-  }, [parentMap, childrenMap]);
+      if (!anyChildSelected) {
+        // remove the parent from selection
+        selectedSet.delete(parentId);
+        // then check parent's parent
+        cascadeUpUnselect(parentId, selectedSet);
+      }
+    },
+    [parentMap, childrenMap]
+  );
 
   // Toggling selection
-  const handleSelectNode = useCallback((node: TreeNode) => {
-    const isCurrentlySelected = node.selected;
-    const newSet = new Set(selectedPaths);
+  const handleSelectNode = useCallback(
+    (node: TreeNode) => {
+      const isCurrentlySelected = node.selected;
+      const newSet = new Set(selectedPaths);
 
-    if (isCurrentlySelected) {
-      // Unselect node + all descendants
-      const toUnselect = (node.type === "folder")
-        ? gatherDescendants(node.id)
-        : [node.id];
+      if (isCurrentlySelected) {
+        // Unselect node + all descendants
+        const toUnselect = node.type === "folder" ? gatherDescendants(node.id) : [node.id];
 
-      toUnselect.forEach(id => newSet.delete(id));
+        toUnselect.forEach((id) => newSet.delete(id));
 
-      // For each unselected child, cascade upward
-      toUnselect.forEach(id => {
-        cascadeUpUnselect(id, newSet);
-      });
+        // For each unselected child, cascade upward
+        toUnselect.forEach((id) => {
+          cascadeUpUnselect(id, newSet);
+        });
+      } else {
+        // Select node + all descendants
+        const toSelect = node.type === "folder" ? gatherDescendants(node.id) : [node.id];
 
-    } else {
-      // Select node + all descendants
-      const toSelect = (node.type === "folder")
-        ? gatherDescendants(node.id)
-        : [node.id];
+        toSelect.forEach((id) => {
+          newSet.add(id);
+        });
+      }
 
-      toSelect.forEach(id => {
-        newSet.add(id);
-      });
-    }
-
-    onSelectionChange(newSet);
-  }, [
-    selectedPaths,
-    onSelectionChange,
-    gatherDescendants,
-    cascadeUpUnselect,
-  ]);
+      onSelectionChange(newSet);
+    },
+    [selectedPaths, onSelectionChange, gatherDescendants, cascadeUpUnselect]
+  );
 
   // Handle copying the selected items
   const handleCopySelected = useCallback(() => {
@@ -472,10 +437,10 @@ const TreeView: React.FC<TreeViewProps> = ({
 
     // Convert selectedPaths to an array of items
     const selectedItems = Array.from(selectedPaths)
-      .map(path => pathToItem.get(path))
+      .map((path) => pathToItem.get(path))
       .filter(Boolean) as (WorkspaceFile | WorkspaceFolder)[];
 
-    const mentions: MentionItem[] = selectedItems.map(item => ({
+    const mentions: MentionItem[] = selectedItems.map((item) => ({
       id: "relativePath" in item ? item.relativePath : "",
       label: item.name,
       type: item.name.includes(".") ? "file" : "folder",
@@ -485,43 +450,45 @@ const TreeView: React.FC<TreeViewProps> = ({
       command: "copyWithContext",
       text: "",
       mentions: mentions,
-      source: "treeView"
+      source: "treeView",
     });
   }, [selectedPaths, pathToItem]);
 
   // -----------------------------------------------
   // Custom Checkbox (supports indeterminate)
   // -----------------------------------------------
-  const IndeterminateCheckbox = React.memo(({
-    checked,
-    indeterminate,
-    onChange,
-    onClick,
-  }: {
-    checked: boolean;
-    indeterminate?: boolean;
-    onChange: () => void;
-    onClick: (e: React.MouseEvent) => void;
-  }) => {
-    const checkboxRef = useRef<HTMLInputElement>(null);
+  const IndeterminateCheckbox = React.memo(
+    ({
+      checked,
+      indeterminate,
+      onChange,
+      onClick,
+    }: {
+      checked: boolean;
+      indeterminate?: boolean;
+      onChange: () => void;
+      onClick: (e: React.MouseEvent) => void;
+    }) => {
+      const checkboxRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-      if (checkboxRef.current) {
-        checkboxRef.current.indeterminate = indeterminate || false;
-      }
-    }, [indeterminate]);
+      useEffect(() => {
+        if (checkboxRef.current) {
+          checkboxRef.current.indeterminate = indeterminate || false;
+        }
+      }, [indeterminate]);
 
-    return (
-      <input
-        type="checkbox"
-        className="node-checkbox"
-        ref={checkboxRef}
-        checked={checked}
-        onChange={onChange}
-        onClick={onClick}
-      />
-    );
-  });
+      return (
+        <input
+          type="checkbox"
+          className="node-checkbox"
+          ref={checkboxRef}
+          checked={checked}
+          onChange={onChange}
+          onClick={onClick}
+        />
+      );
+    }
+  );
 
   // -----------------------------------------------
   // Rendering
@@ -531,8 +498,7 @@ const TreeView: React.FC<TreeViewProps> = ({
       <div key={node.id} className="tree-node-container">
         <div
           className={`tree-node ${node.selected ? "selected" : ""}`}
-          style={{ paddingLeft: `${node.level * 16}px` }}
-        >
+          style={{ paddingLeft: `${node.level * 16}px` }}>
           {/* Folder toggler (if folder) */}
           {node.type === "folder" ? (
             <span
@@ -540,8 +506,7 @@ const TreeView: React.FC<TreeViewProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 handleToggleExpand(node.id);
-              }}
-            >
+              }}>
               {node.expanded ? <ChevronDownIcon /> : <ChevronRightIcon />}
             </span>
           ) : (
@@ -558,27 +523,26 @@ const TreeView: React.FC<TreeViewProps> = ({
 
           {/* Icon for file/folder */}
           <span className={`node-icon ${node.type}-icon`}>
-            {node.type === "folder"
-              ? (node.expanded ? <FolderOpenedIcon /> : <FolderIcon />)
-              : <FileIconComponent filename={node.name} />
-            }
+            {node.type === "folder" ? (
+              node.expanded ? (
+                <FolderOpenedIcon />
+              ) : (
+                <FolderIcon />
+              )
+            ) : (
+              <FileIconComponent filename={node.name} />
+            )}
           </span>
 
           {/* Name (clickable to toggle selection) */}
-          <span
-            className="node-name"
-            onClick={() => handleSelectNode(node)}
-            title={node.path}
-          >
+          <span className="node-name" onClick={() => handleSelectNode(node)} title={node.path}>
             {node.name}
           </span>
         </div>
 
         {/* Children (if expanded) */}
         {node.expanded && node.children.length > 0 && (
-          <div className="tree-children">
-            {renderTree(node.children)}
-          </div>
+          <div className="tree-children">{renderTree(node.children)}</div>
         )}
       </div>
     ));
@@ -597,23 +561,14 @@ const TreeView: React.FC<TreeViewProps> = ({
           onInput={(e) => {
             const target = e.target as HTMLInputElement;
             setSearchInput(target.value);
-          }}
-        >
+          }}>
           {searchInput && (
-            <span
-              slot="end"
-              onClick={() => setSearchInput("")}
-              title="Clear search"
-            >
+            <span slot="end" onClick={() => setSearchInput("")} title="Clear search">
               <CloseIcon />
             </span>
           )}
         </VSCodeTextField>
-        <div
-          className="collapse-all-icon"
-          onClick={handleCloseAll}
-          title="Close all folders"
-        >
+        <div className="collapse-all-icon" onClick={handleCloseAll} title="Close all folders">
           <CollapseAllIcon />
         </div>
       </div>
@@ -623,18 +578,13 @@ const TreeView: React.FC<TreeViewProps> = ({
           renderTree(displayedTreeData)
         ) : (
           <div className="no-results">
-            {searchQuery
-              ? "No matching files or folders found"
-              : "No files or folders available"}
+            {searchQuery ? "No matching files or folders found" : "No files or folders available"}
           </div>
         )}
       </div>
 
       <div className="tree-footer">
-        <VSCodeButton
-          onClick={handleCopySelected}
-          disabled={selectedPaths.size === 0}
-        >
+        <VSCodeButton onClick={handleCopySelected} disabled={selectedPaths.size === 0}>
           Copy
         </VSCodeButton>
       </div>

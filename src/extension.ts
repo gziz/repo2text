@@ -55,8 +55,6 @@ export function activate(context: ExtensionContext) {
     commands.registerCommand("repo2prompt.refreshWorkspace", async () => {
       try {
         await workspaceFileManager.refreshCache();
-        // Inform the user that the workspace has been refreshed
-        window.showInformationMessage("Workspace refreshed successfully");
       } catch (error) {
         window.showErrorMessage(`Failed to refresh workspace: ${error}`);
       }
