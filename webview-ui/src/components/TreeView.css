@@ -10,7 +10,6 @@
 .tree-search-container {
   padding-bottom: 8px;
   position: relative;
-  border-bottom: 1px solid var(--vscode-panel-border);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -55,7 +54,6 @@
 
 .tree-footer {
   padding: 8px;
-  border-top: 1px solid var(--vscode-panel-border);
   display: flex;
   justify-content: flex-end;
 }
