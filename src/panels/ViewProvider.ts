@@ -38,8 +38,6 @@ export class ViewProvider implements vscode.WebviewViewProvider {
    * Clean up resources when extension is deactivated
    */
   public dispose(): void {    
-    this._cleanupHeavyResources();
-    
     if (this._messageHandler) {
       this._messageHandler.dispose();
       this._messageHandler = undefined;
@@ -113,8 +111,6 @@ export class ViewProvider implements vscode.WebviewViewProvider {
   private _handleVisibilityChange(webviewView: vscode.WebviewView): void {
     if (webviewView.visible) {
       this._initializeResources();
-    } else {
-      this._cleanupHeavyResources();
     }
   }
 
@@ -122,18 +118,10 @@ export class ViewProvider implements vscode.WebviewViewProvider {
    * Initialize resources when webview becomes visible
    */
   private _initializeResources(): void {
-    // Start file system watchers
-    this._fileManager.startHeavyFileSystemWatchers();
-    
-    // Refresh cache if changes occurred while view is hidden
-    if (this._fileManager.hasChanges()) {
-      this._refreshCache();
-    } else {
-      // Initialize if not done already
-      this._fileManager.initialize()
-        .then(() => this._refreshWebviewWorkspaceData())
-        .catch(this._handleCacheError);
-    }
+    // Initialize if not done already
+    this._fileManager.initialize()
+      .then(() => this._refreshWebviewWorkspaceData())
+      .catch(this._handleCacheError);
   }
 
   /**
@@ -143,7 +131,6 @@ export class ViewProvider implements vscode.WebviewViewProvider {
     this._fileManager.refreshCache()
       .then(() => {
         this._refreshWebviewWorkspaceData();
-        this._fileManager.resetChangeTracker();
       })
       .catch(this._handleCacheError);
   }
@@ -154,14 +141,6 @@ export class ViewProvider implements vscode.WebviewViewProvider {
   private _handleCacheError(err: Error): void {
     // Still try to refresh the webview data even if cache refresh failed
     this._refreshWebviewWorkspaceData();
-    this._fileManager.resetChangeTracker();
-  }
-
-  /**
-   * Clean up resources when webview is hidden
-   */
-  private _cleanupHeavyResources(): void {
-    this._fileManager.stopHeavyFileSystemWatchers();
   }
 
   /**
@@ -237,4 +216,4 @@ export class ViewProvider implements vscode.WebviewViewProvider {
       </html>
     `;
   }
-} 
+}

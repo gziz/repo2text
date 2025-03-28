@@ -49,6 +49,19 @@ export function activate(context: ExtensionContext) {
       repo2promptViewProvider.showEditorView();
     })
   );
+
+  // Register the refresh workspace command
+  context.subscriptions.push(
+    commands.registerCommand("repo2prompt.refreshWorkspace", async () => {
+      try {
+        await workspaceFileManager.refreshCache();
+        // Inform the user that the workspace has been refreshed
+        window.showInformationMessage("Workspace refreshed successfully");
+      } catch (error) {
+        window.showErrorMessage(`Failed to refresh workspace: ${error}`);
+      }
+    })
+  );
 }
 
 // This method is called when your extension is deactivated

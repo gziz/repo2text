@@ -12,12 +12,6 @@ export class WorkspaceFileManager {
   private filePathCache: Map<string, WorkspaceFile> = new Map();
   // Cache of workspace folders (paths only)
   private folderPathCache: Map<string, WorkspaceFolder> = new Map();
-  // Disposables for file system watchers
-  private heavyFileWatcherDisposables: vscode.Disposable[] = [];
-  // Lightweight watcher that persists even when webview is hidden
-  private lightFileWatcherDisposables: vscode.Disposable[] = [];
-  // Flag to track if changes occurred while webview was hidden
-  private hasChangedSinceLastView: boolean = false;
   // Flag to track if the cache is initialized
   private cacheInitialized: boolean = false;
   // Event emitters for cache changes
@@ -34,9 +28,6 @@ export class WorkspaceFileManager {
   private effectiveExcludedDirsInitialized: boolean = false;
 
   constructor() {
-    // Set up persistent lightweight watchers
-    this.setupLightFileSystemWatchers();
-    
     // Watch for configuration changes
     vscode.workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration('repo2prompt.excludeHiddenDirectories') ||
@@ -193,96 +184,7 @@ export class WorkspaceFileManager {
    * Dispose of all resources
    */
   public dispose(): void {
-    this.heavyFileWatcherDisposables.forEach(d => d.dispose());
-    this.heavyFileWatcherDisposables = [];
-    this.lightFileWatcherDisposables.forEach(d => d.dispose());
-    this.lightFileWatcherDisposables = [];
     this._onCacheChanged.dispose();
-  }
-
-  /**
-   * Start file system watchers (should be called when webview becomes visible)
-   */
-  public startHeavyFileSystemWatchers(): void {
-    // Only start if not already running
-    if (this.heavyFileWatcherDisposables.length === 0) {
-      this.setupHeavyFileSystemWatchers();
-    }
-  }
-
-  /**
-   * Stop file system watchers (should be called when webview is hidden)
-   */
-  public stopHeavyFileSystemWatchers(): void {
-    this.heavyFileWatcherDisposables.forEach(d => d.dispose());
-    this.heavyFileWatcherDisposables = [];
-  }
-
-  /**
-   * Check if changes occurred while webview was hidden
-   * @returns True if changes occurred, false otherwise
-   */
-  public hasChanges(): boolean {
-    return this.hasChangedSinceLastView;
-  }
-
-  /**
-   * Reset the change tracker flag after processing changes
-   */
-  public resetChangeTracker(): void {
-    this.hasChangedSinceLastView = false;
-  }
-
-  /**
-   * Set up lightweight persistent watchers that stay active even when webview is hidden
-   */
-  private setupLightFileSystemWatchers(): void {
-    // Clean up any existing persistent watchers first
-    this.lightFileWatcherDisposables.forEach(d => d.dispose());
-    this.lightFileWatcherDisposables = [];
-    
-    // Watch for file creation
-    const createWatcher = vscode.workspace.onDidCreateFiles(() => {
-      this.hasChangedSinceLastView = true;
-    });
-
-    // Watch for file deletion
-    const deleteWatcher = vscode.workspace.onDidDeleteFiles(() => {
-      this.hasChangedSinceLastView = true;
-    });
-
-    // Watch for file renames
-    const renameWatcher = vscode.workspace.onDidRenameFiles(() => {
-      this.hasChangedSinceLastView = true;
-    });
-
-    // Watch for workspace folder changes
-    const folderWatcher = vscode.workspace.onDidChangeWorkspaceFolders(() => {
-      this.hasChangedSinceLastView = true;
-    });
-
-    // Watch for .gitignore changes
-    const gitignoreWatcher = vscode.workspace.createFileSystemWatcher('**/.gitignore');
-    gitignoreWatcher.onDidChange(() => {
-        this.updateEffectiveExcludedDirs();
-        this.hasChangedSinceLastView = true;
-    });
-    gitignoreWatcher.onDidCreate(() => {
-        this.updateEffectiveExcludedDirs();
-        this.hasChangedSinceLastView = true;
-    });
-    gitignoreWatcher.onDidDelete(() => {
-        this.updateEffectiveExcludedDirs();
-        this.hasChangedSinceLastView = true;
-    });
-
-    this.lightFileWatcherDisposables.push(
-      createWatcher,
-      deleteWatcher,
-      renameWatcher,
-      folderWatcher,
-      gitignoreWatcher
-    );
   }
 
   /**
@@ -291,158 +193,8 @@ export class WorkspaceFileManager {
    */
   public async refreshCache(): Promise<void> {
     await this._refreshCache();
-    // Reset the change tracker after refreshing
-    this.hasChangedSinceLastView = false;
-  }
-
-  /**
-   * Set up file system watchers to keep the cache updated
-   */
-  private setupHeavyFileSystemWatchers(): void {
-    // Watch for file creation
-    const createWatcher = vscode.workspace.onDidCreateFiles(async (event) => {
-      await this.handleFileCreation(event.files);
-    });
-
-    // Watch for file deletion
-    const deleteWatcher = vscode.workspace.onDidDeleteFiles(async (event) => {
-      await this.handleFileDeletion(event.files);
-    });
-
-    // Watch for file renames
-    const renameWatcher = vscode.workspace.onDidRenameFiles(async (event) => {
-      await this.handleFileRename(event.files);
-    });
-
-    // Watch for workspace folder changes
-    const folderWatcher = vscode.workspace.onDidChangeWorkspaceFolders(async () => {
-      await this._refreshCache();
-    });
-
-    this.heavyFileWatcherDisposables.push(
-      createWatcher,
-      deleteWatcher,
-      renameWatcher,
-      folderWatcher
-    );
-  }
-
-  /**
-   * Handle file creation events
-   */
-  private async handleFileCreation(files: readonly vscode.Uri[]): Promise<void> {
-    let cacheChanged = false;
-
-    for (const uri of files) {
-      try {
-        const fileStat = await vscode.workspace.fs.stat(uri);
-        
-        // If directory was created, refresh the whole cache for simplicity
-        if (fileStat.type === vscode.FileType.Directory) {
-          await this._refreshCache();
-          return;
-        } 
-        // If it's a file and not excluded, add to cache
-        else if (fileStat.type === vscode.FileType.File && !this.isExcludedFile(uri.fsPath)) {
-          const file: WorkspaceFile = {
-            uri: uri.toString(),
-            path: uri.fsPath,
-            name: path.basename(uri.fsPath),
-            relativePath: vscode.workspace.asRelativePath(uri)
-          };
-          this.filePathCache.set(uri.fsPath, file);
-          cacheChanged = true;
-        }
-      } catch (error) {
-        console.error(`Error handling file creation for ${uri.fsPath}:`, error);
-      }
-    }
-
-    if (cacheChanged) {
-      this._onCacheChanged.fire();
-    }
-  }
-
-  /**
-   * Handle file deletion events
-   */
-  private async handleFileDeletion(files: readonly vscode.Uri[]): Promise<void> {
-    let cacheChanged = false;
-
-    for (const uri of files) {
-      const uriString = uri.toString();
-      
-      // Check if it's a folder we have cached
-      if (this.folderPathCache.has(uri.fsPath)) {
-        this.folderPathCache.delete(uri.fsPath);
-        
-        // Also remove any files that were in this folder
-        const prefix = uriString + '/';
-        for (const [filePath, fileInfo] of this.filePathCache.entries()) {
-          if (fileInfo.uri.startsWith(prefix)) {
-            this.filePathCache.delete(filePath);
-          }
-        }
-        
-        // Also remove any subfolders
-        for (const [folderPath, folderInfo] of this.folderPathCache.entries()) {
-          if (folderInfo.uri.startsWith(prefix)) {
-            this.folderPathCache.delete(folderPath);
-          }
-        }
-        
-        cacheChanged = true;
-      } 
-      // Check if it's a file we have cached
-      else if (this.filePathCache.has(uri.fsPath)) {
-        this.filePathCache.delete(uri.fsPath);
-        cacheChanged = true;
-      }
-    }
-
-    if (cacheChanged) {
-      this._onCacheChanged.fire();
-    }
-  }
-
-  /**
-   * Handle file rename events
-   */
-  private async handleFileRename(files: readonly { oldUri: vscode.Uri; newUri: vscode.Uri }[]): Promise<void> {
-    let cacheChanged = false;
-
-    for (const { oldUri, newUri } of files) {
-      try {
-        const fileStat = await vscode.workspace.fs.stat(newUri);
-        
-        // If directory was renamed, refresh the whole cache for simplicity
-        if (fileStat.type === vscode.FileType.Directory) {
-          await this._refreshCache();
-          return;
-        } 
-        // If it's a file and not excluded, update the cache
-        else if (fileStat.type === vscode.FileType.File && !this.isExcludedFile(newUri.fsPath)) {
-          // Remove old file from cache
-          this.filePathCache.delete(oldUri.fsPath);
-          
-          // Add new file to cache
-          const file: WorkspaceFile = {
-            uri: newUri.toString(),
-            path: newUri.fsPath,
-            name: path.basename(newUri.fsPath),
-            relativePath: vscode.workspace.asRelativePath(newUri)
-          };
-          this.filePathCache.set(newUri.fsPath, file);
-          cacheChanged = true;
-        }
-      } catch (error) {
-        console.error(`Error handling file rename from ${oldUri.fsPath} to ${newUri.fsPath}:`, error);
-      }
-    }
-
-    if (cacheChanged) {
-      this._onCacheChanged.fire();
-    }
+    // Notify listeners that the cache has changed
+    this._onCacheChanged.fire();
   }
 
   /**
@@ -502,16 +254,14 @@ export class WorkspaceFileManager {
             this.filePathCache.set(entryPath, file);
           }
         }
+        
+        const endTime = Date.now();
+        console.log(`Processed folder ${folder.uri.fsPath} in ${endTime - startTime}ms`);
       }
       
-      this.cacheInitialized = true;
-
-      
-      // Notify subscribers that workspace files have changed
-      this._onCacheChanged.fire();
-      
+      console.log(`Indexed ${this.filePathCache.size} files and ${this.folderPathCache.size} folders`);
     } catch (error) {
-      console.error("Error refreshing file cache:", error);
+      console.error("Error refreshing cache:", error);
       throw error;
     }
   }
@@ -560,7 +310,7 @@ export class WorkspaceFileManager {
     
     return false;
   }
-  
+
   /**
    * Check if a directory should be excluded
    */
@@ -652,25 +402,25 @@ export class WorkspaceFileManager {
         const part = parts[i];
         if (!current[part]) {
           current[part] = {};
-        }
+          }
         current = current[part];
-      }
-    }
-    
+        }
+  }
+
     // Sort the tree keys alphabetically
     const sortObjectKeys = (obj: Record<string, any>): Record<string, any> => {
       const sortedObj: Record<string, any> = {};
       
       // Get all keys and sort them alphabetically
       const sortedKeys = Object.keys(obj).sort();
-      
+    
       // Create a new object with sorted keys
-      for (const key of sortedKeys) {
+    for (const key of sortedKeys) {
         sortedObj[key] = typeof obj[key] === 'object' && obj[key] !== null
           ? sortObjectKeys(obj[key])  // Recursively sort child objects
           : obj[key];
-      }
-      
+    }
+    
       return sortedObj;
     };
     

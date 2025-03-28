@@ -33,6 +33,13 @@
         "title": "Open Editor View",
         "icon": "$(pencil)",
         "group": "navigation"
+      },
+      {
+        "command": "repo2prompt.refreshWorkspace",
+        "category": "",
+        "title": "Refresh Workspace",
+        "icon": "$(refresh)",
+        "group": "navigation"
       }
     ],
     "viewsContainers": {
@@ -62,6 +69,11 @@
         },
         {
           "command": "repo2prompt.openEditorView",
+          "group": "navigation",
+          "when": "view == repo2promptView"
+        },
+        {
+          "command": "repo2prompt.refreshWorkspace",
           "group": "navigation",
           "when": "view == repo2promptView"
         }
