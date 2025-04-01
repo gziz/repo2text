@@ -66,7 +66,6 @@ export class WorkspaceFileManager {
     if (respectGitignore) {
         await this.addGitignorePatterns();
     }
-    console.log('Global ignore patterns:', this.globalIgnorePatterns);
   }
 
   private async addGitignorePatterns(): Promise<void> {
@@ -220,8 +219,6 @@ export class WorkspaceFileManager {
       
       // Process each workspace folder
       for (const folder of workspaceFolders) {
-        const startTime = Date.now();
-      
         // Get all entries using the shared method
         const entries = await this._getFilesWithGlob(folder.uri.fsPath, false, Array.from(this.globalIgnorePatterns));
 
@@ -254,12 +251,7 @@ export class WorkspaceFileManager {
             this.filePathCache.set(entryPath, file);
           }
         }
-        
-        const endTime = Date.now();
-        console.log(`Processed folder ${folder.uri.fsPath} in ${endTime - startTime}ms`);
       }
-      
-      console.log(`Indexed ${this.filePathCache.size} files and ${this.folderPathCache.size} folders`);
     } catch (error) {
       console.error("Error refreshing cache:", error);
       throw error;

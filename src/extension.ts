@@ -1,10 +1,6 @@
 import { commands, ExtensionContext, window } from "vscode";
 import { ViewProvider } from "./panels/ViewProvider";
 import { WorkspaceFileManager } from "./utils/WorkspaceFileManager";
-import { DEFAULT_PROMPT_TEMPLATE, DEFAULT_FILE_TEMPLATE } from "./utils/defaultTemplate";
-
-// Export the default template for use in other parts of the extension
-export { DEFAULT_PROMPT_TEMPLATE, DEFAULT_FILE_TEMPLATE };
 
 // Create a singleton instance of the WorkspaceFileManager
 export let workspaceFileManager: WorkspaceFileManager;

@@ -63,17 +63,17 @@
     "menus": {
       "view/title": [
         {
+          "command": "repo2prompt.refreshWorkspace",
+          "group": "navigation",
+          "when": "view == repo2promptView"
+        },
+        {
           "command": "repo2prompt.openConfigPage",
           "group": "navigation",
           "when": "view == repo2promptView"
         },
         {
           "command": "repo2prompt.openEditorView",
-          "group": "navigation",
-          "when": "view == repo2promptView"
-        },
-        {
-          "command": "repo2prompt.refreshWorkspace",
           "group": "navigation",
           "when": "view == repo2promptView"
         }
