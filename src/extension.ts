@@ -30,6 +30,17 @@ export function activate(context: ExtensionContext) {
     )
   );
   
+  // Register the refresh workspace command
+  context.subscriptions.push(
+    commands.registerCommand("repo2prompt.refreshWorkspace", async () => {
+      try {
+        await workspaceFileManager.refreshCache();
+      } catch (error) {
+        window.showErrorMessage(`Failed to refresh workspace: ${error}`);
+      }
+    })
+  );
+
   // Register the settings command
   context.subscriptions.push(
     commands.registerCommand("repo2prompt.openConfigPage", () => {
@@ -46,16 +57,6 @@ export function activate(context: ExtensionContext) {
     })
   );
 
-  // Register the refresh workspace command
-  context.subscriptions.push(
-    commands.registerCommand("repo2prompt.refreshWorkspace", async () => {
-      try {
-        await workspaceFileManager.refreshCache();
-      } catch (error) {
-        window.showErrorMessage(`Failed to refresh workspace: ${error}`);
-      }
-    })
-  );
 }
 
 // This method is called when your extension is deactivated

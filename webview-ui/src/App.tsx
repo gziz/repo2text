@@ -109,7 +109,7 @@ function App() {
       case "editor":
         return (
           <div className="prompt-main-section">
-            <CollapsibleView title="EDITOR" defaultExpanded={true}>
+            <CollapsibleView title="EDITOR VIEW" defaultExpanded={true}>
               <div className="editor-container-wrapper">
                 <TipTapEditor
                   workspaceFiles={files}

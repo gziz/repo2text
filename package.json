@@ -30,7 +30,7 @@
       {
         "command": "repo2prompt.openEditorView",
         "category": "",
-        "title": "Open Editor View",
+        "title": "Open Files View",
         "icon": "$(pencil)",
         "group": "navigation"
       },
@@ -64,17 +64,17 @@
       "view/title": [
         {
           "command": "repo2prompt.refreshWorkspace",
-          "group": "navigation",
-          "when": "view == repo2promptView"
-        },
-        {
-          "command": "repo2prompt.openConfigPage",
-          "group": "navigation",
+          "group": "navigation@1",
           "when": "view == repo2promptView"
         },
         {
           "command": "repo2prompt.openEditorView",
-          "group": "navigation",
+          "group": "navigation@2",
+          "when": "view == repo2promptView"
+        },
+        {
+          "command": "repo2prompt.openConfigPage",
+          "group": "navigation@3",
           "when": "view == repo2promptView"
         }
       ]

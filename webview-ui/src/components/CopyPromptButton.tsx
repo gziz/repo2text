@@ -9,7 +9,7 @@ interface CopyPromptButtonProps {
 const CopyPromptButton: React.FC<CopyPromptButtonProps> = ({ onClick }) => {
   return (
     <button className="copy-prompt-button" onClick={onClick}>
-      <CopyIcon />
+      <CopyIcon height="14px" width="14px"/>
     </button>
   );
 };

@@ -98,4 +98,5 @@ export const EXCLUDED_FILE_EXTENSIONS = [
   ".pag",
   ".swp",
   ".jsonl",
+  ".ico",
 ];

@@ -125,17 +125,6 @@ export class ViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Refresh the file cache and update the webview
-   */
-  private _refreshCache(): void {
-    this._fileManager.refreshCache()
-      .then(() => {
-        this._refreshWebviewWorkspaceData();
-      })
-      .catch(this._handleCacheError);
-  }
-
-  /**
    * Handle cache refresh errors
    */
   private _handleCacheError(err: Error): void {
