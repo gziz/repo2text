@@ -126,7 +126,8 @@ function App() {
               </div>
             </CollapsibleView>
             
-            <CollapsibleView title="TREE VIEW" defaultExpanded={true}>
+            <CollapsibleView title="TREE VIEW" defaultExpanded={true}
+              style={{ display: 'flex', flex: '0 1 auto', minHeight: '0', overflow: 'hidden' }}>
               <div className="tree-view-container-wrapper">
                 <TreeView
                   workspaceFiles={files}

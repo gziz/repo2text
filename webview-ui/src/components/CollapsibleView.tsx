@@ -6,12 +6,14 @@ interface CollapsibleViewProps {
   title: string;
   defaultExpanded?: boolean;
   children: React.ReactNode;
+  style?: React.CSSProperties;
 }
 
 const CollapsibleView: React.FC<CollapsibleViewProps> = ({
   title,
   defaultExpanded = true,
-  children
+  children,
+  style
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
@@ -20,7 +22,7 @@ const CollapsibleView: React.FC<CollapsibleViewProps> = ({
   };
 
   return (
-    <div className="collapsible-view">
+    <div className="collapsible-view" style={style}>
       <div className="collapsible-header" onClick={toggleExpand}>
         <div className="collapsible-header-content">
           <span className={`expand-icon ${isExpanded ? 'expanded' : ''}`}>
