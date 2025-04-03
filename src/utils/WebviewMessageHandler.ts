@@ -138,7 +138,7 @@ export class WebviewMessageHandler {
   private async _handleSaveSettingsRequest(settings: any): Promise<void> {
     try {
       // Save the setting to its proper configuration key
-      const config = vscode.workspace.getConfiguration('repo2prompt');
+      const config = vscode.workspace.getConfiguration('repo2text');
       
       if (settings.excludeHiddenDirectories !== undefined) {
         await config.update('excludeHiddenDirectories', settings.excludeHiddenDirectories, vscode.ConfigurationTarget.Global);
@@ -190,7 +190,7 @@ export class WebviewMessageHandler {
   private async _handleGetSettingsRequest(): Promise<void> {
     try {
       // Get the setting from the configuration
-      const config = vscode.workspace.getConfiguration('repo2prompt');
+      const config = vscode.workspace.getConfiguration('repo2text');
       
       // Load template strings
       const templates = await this._templateManager.loadTemplates();

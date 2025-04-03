@@ -5,7 +5,7 @@ import { COMMON_EXCLUDED_DIRS, EXCLUDED_FILE_EXTENSIONS } from "./constants";
 import { WorkspaceFolder, WorkspaceFile } from "./types";
 
 /**
- * Manages file system operations and caching for the repo2prompt extension
+ * Manages file system operations and caching for the repo2text extension
  */
 export class WorkspaceFileManager {
   // Cache of workspace files (paths only, not content)
@@ -30,8 +30,8 @@ export class WorkspaceFileManager {
   constructor() {
     // Watch for configuration changes
     vscode.workspace.onDidChangeConfiguration(event => {
-        if (event.affectsConfiguration('repo2prompt.excludeHiddenDirectories') ||
-            event.affectsConfiguration('repo2prompt.respectGitignore')) {
+        if (event.affectsConfiguration('repo2text.excludeHiddenDirectories') ||
+            event.affectsConfiguration('repo2text.respectGitignore')) {
             this.updateEffectiveExcludedDirs();
         }
     });
@@ -51,8 +51,8 @@ export class WorkspaceFileManager {
    */
   private async updateEffectiveExcludedDirs(): Promise<void> {
     // Check if we should exclude hidden directories
-    this.excludeHiddenDirectories = vscode.workspace.getConfiguration('repo2prompt').get('excludeHiddenDirectories', true);
-    const respectGitignore = vscode.workspace.getConfiguration('repo2prompt').get('respectGitignore', true);
+    this.excludeHiddenDirectories = vscode.workspace.getConfiguration('repo2text').get('excludeHiddenDirectories', true);
+    const respectGitignore = vscode.workspace.getConfiguration('repo2text').get('respectGitignore', true);
 
     this.globalIgnorePatterns = new Set([
         ...COMMON_EXCLUDED_DIRS.map(dir => `**/${dir}/**`),

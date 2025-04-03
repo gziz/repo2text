@@ -17,11 +17,11 @@ export function activate(context: ExtensionContext) {
   });
 
   // Register the sidebar view provider
-  const repo2promptViewProvider = new ViewProvider(context.extensionUri, workspaceFileManager);
+  const repo2textViewProvider = new ViewProvider(context.extensionUri, workspaceFileManager);
   context.subscriptions.push(
     window.registerWebviewViewProvider(
       ViewProvider.viewType,
-      repo2promptViewProvider,
+      repo2textViewProvider,
       {
         webviewOptions: {
           retainContextWhenHidden: true
@@ -32,7 +32,7 @@ export function activate(context: ExtensionContext) {
   
   // Register the refresh workspace command
   context.subscriptions.push(
-    commands.registerCommand("repo2prompt.refreshWorkspace", async () => {
+    commands.registerCommand("repo2text.refreshWorkspace", async () => {
       try {
         await workspaceFileManager.refreshCache();
       } catch (error) {
@@ -43,17 +43,17 @@ export function activate(context: ExtensionContext) {
 
   // Register the settings command
   context.subscriptions.push(
-    commands.registerCommand("repo2prompt.openConfigPage", () => {
+    commands.registerCommand("repo2text.openConfigPage", () => {
       // Send a message to the webview to switch to the settings view
-      repo2promptViewProvider.showSettingsView();
+      repo2textViewProvider.showSettingsView();
     })
   );
   
   // Register the return to main view command
   context.subscriptions.push(
-    commands.registerCommand("repo2prompt.openEditorView", () => {
+    commands.registerCommand("repo2text.openEditorView", () => {
       // Send a message to the webview to switch back to the main view
-      repo2promptViewProvider.showEditorView();
+      repo2textViewProvider.showEditorView();
     })
   );
 

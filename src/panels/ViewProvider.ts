@@ -6,10 +6,10 @@ import { WebviewMessageHandler } from "../utils/WebviewMessageHandler";
 import { PromptGenerator } from "../utils/PromptGenerator";
 
 /**
- * Provider for the Repo2Prompt sidebar view
+ * Provider for the repo2text sidebar view
  */
 export class ViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = "repo2promptView";
+  public static readonly viewType = "repo2textView";
 
   private _view?: vscode.WebviewView;
   private _extensionUri: vscode.Uri;

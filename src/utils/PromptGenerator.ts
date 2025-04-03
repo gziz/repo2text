@@ -180,7 +180,7 @@ export class PromptGenerator {
       }
       
       // Get maximum file size from configuration
-      const configuration = vscode.workspace.getConfiguration('repo2prompt');
+      const configuration = vscode.workspace.getConfiguration('repo2text');
       const maxFileSizeKB = configuration.get<number>('maxFileSizeKB', 500);
       const maxFileSize = maxFileSizeKB * 1024; // Convert KB to bytes
       
@@ -217,7 +217,7 @@ export class PromptGenerator {
 
     try {
       // Get maximum file size from configuration
-      const configuration = vscode.workspace.getConfiguration('repo2prompt');
+      const configuration = vscode.workspace.getConfiguration('repo2text');
       const maxFileSizeKB = configuration.get<number>('maxFileSizeKB', 500);
       const maxFileSize = maxFileSizeKB * 1024; // Convert KB to bytes
       

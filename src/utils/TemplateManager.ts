@@ -123,7 +123,7 @@ export class TemplateManager {
     fileTemplate: string
   }> {
     try {
-      const config = vscode.workspace.getConfiguration('repo2prompt');
+      const config = vscode.workspace.getConfiguration('repo2text');
       
       // Get settings values with defaults if not set
       const editorTemplate = config.get<string>('editorTemplateString');

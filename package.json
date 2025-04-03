@@ -1,12 +1,12 @@
 {
-  "name": "repo2prompt",
+  "name": "repo2text",
   "publisher": "gziz",
-  "displayName": "Repo2Prompt",
+  "displayName": "Repo 2 Text",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gziz/repo2prompt"
+    "url": "https://github.com/gziz/repo2text"
   },
-  "homepage": "https://repo2prompt.gziz.io",
+  "homepage": "https://repo2text.gziz.io",
   "description": "Export your entire codebase or specific files into a single LLM-friendly text",
   "version": "0.0.1",
   "license": "MIT",
@@ -21,21 +21,21 @@
   "contributes": {
     "commands": [
       {
-        "command": "repo2prompt.openConfigPage",
+        "command": "repo2text.openConfigPage",
         "category": "",
         "title": "Open Settings",
         "icon": "$(gear)",
         "group": "navigation"
       },
       {
-        "command": "repo2prompt.openEditorView",
+        "command": "repo2text.openEditorView",
         "category": "",
         "title": "Open Files View",
         "icon": "$(pencil)",
         "group": "navigation"
       },
       {
-        "command": "repo2prompt.refreshWorkspace",
+        "command": "repo2text.refreshWorkspace",
         "category": "",
         "title": "Refresh Workspace",
         "icon": "$(refresh)",
@@ -45,17 +45,17 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "repo2prompt",
-          "title": "Repo2Prompt",
+          "id": "repo2text",
+          "title": "repo2text",
           "icon": "resources/icon_for_activitybar.png"
         }
       ]
     },
     "views": {
-      "repo2prompt": [
+      "repo2text": [
         {
           "type": "webview",
-          "id": "repo2promptView",
+          "id": "repo2textView",
           "name": "Repo 2 Prompt"
         }
       ]
@@ -63,48 +63,48 @@
     "menus": {
       "view/title": [
         {
-          "command": "repo2prompt.refreshWorkspace",
+          "command": "repo2text.refreshWorkspace",
           "group": "navigation@1",
-          "when": "view == repo2promptView"
+          "when": "view == repo2textView"
         },
         {
-          "command": "repo2prompt.openEditorView",
+          "command": "repo2text.openEditorView",
           "group": "navigation@2",
-          "when": "view == repo2promptView"
+          "when": "view == repo2textView"
         },
         {
-          "command": "repo2prompt.openConfigPage",
+          "command": "repo2text.openConfigPage",
           "group": "navigation@3",
-          "when": "view == repo2promptView"
+          "when": "view == repo2textView"
         }
       ]
     },
     "configuration": {
-      "title": "Repo2Prompt",
+      "title": "Repo 2 Text",
       "properties": {
-        "repo2prompt.excludeHiddenDirectories": {
+        "repo2text.excludeHiddenDirectories": {
           "type": "boolean",
           "default": false,
           "description": "Whether to exclude hidden directories (starting with '.*') from search results"
         },
-        "repo2prompt.maxFileSizeKB": {
+        "repo2text.maxFileSizeKB": {
           "type": "number",
           "default": 500,
           "description": "Maximum file size (in KB) to include in prompts. Files larger than this will be excluded to avoid exceeding token limits."
         },
-        "repo2prompt.editorTemplateString": {
+        "repo2text.editorTemplateString": {
           "type": "string",
           "description": "Template string for formatting prompts from the editor. Use {{fileMap}}, {{fileContents}}, and {{userText}} as variables."
         },
-        "repo2prompt.treeViewTemplateString": {
+        "repo2text.treeViewTemplateString": {
           "type": "string",
           "description": "Template string for formatting prompts from the tree view. Use {{fileMap}} and {{fileContents}} as variables."
         },
-        "repo2prompt.fileTemplateString": {
+        "repo2text.fileTemplateString": {
           "type": "string",
           "description": "Template string for formatting individual files in the prompt. Use {{filePath}} and {{fileContent}} as variables."
         },
-        "repo2prompt.respectGitignore": {
+        "repo2text.respectGitignore": {
           "type": "boolean",
           "default": true,
           "description": "Respect .gitignore patterns when scanning workspace files"
