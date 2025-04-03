@@ -11,6 +11,8 @@ import { PromptGenerator } from "../utils/PromptGenerator";
 export class ViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "repo2textView";
 
+  private _currentWebview: string = "editor";
+
   private _view?: vscode.WebviewView;
   private _extensionUri: vscode.Uri;
   private _fileManager: WorkspaceFileManager;
@@ -73,6 +75,15 @@ export class ViewProvider implements vscode.WebviewViewProvider {
       this._promptGenerator,
       () => this._refreshWebviewWorkspaceData()
     );
+    
+    // Add message listener for view state changes
+    webviewView.webview.onDidReceiveMessage(message => {
+      if (message.command === "webviewChanged") {
+        this._currentWebview = message.view;
+        // Update VS Code context
+        vscode.commands.executeCommand('setContext', 'repo2text.currentWebview', this._currentWebview);
+      }
+    });
     
     // Handle visibility changes
     webviewView.onDidChangeVisibility(() => this._handleVisibilityChange(webviewView));

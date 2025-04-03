@@ -69,6 +69,7 @@ function App() {
   // Handle back to editor navigation
   const handleBackToEditor = () => {
     setCurrentView("editor");
+    vscode.postMessage({ command: "webviewChanged", view: "editor" });
   };
 
   // Handle settings save
@@ -90,6 +91,11 @@ function App() {
   const handleUpdateSettings = (updatedSettings: Settings) => {
     setSettings(updatedSettings);
   };
+
+  // Add effect to send view changes to VS Code
+  useEffect(() => {
+    vscode.postMessage({ command: "webviewChanged", view: currentView });
+  }, [currentView]);
 
   // Render the editor or settings view based on the current view state
   const renderCurrentView = () => {
