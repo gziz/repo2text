@@ -52,6 +52,29 @@ body {
   outline: none;
 }
 
+/* Global scrollbar styling */
+* {
+  scrollbar-width: thin; /* Firefox */
+}
+
+/* Webkit scrollbar styling (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 6px; /* Thin scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--vscode-scrollbarSlider-background);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
 /* App container */
 .app-container {
   display: flex;
@@ -86,6 +109,7 @@ button:focus {
   flex-direction: column;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 .editor-container-wrapper {
@@ -96,8 +120,12 @@ button:focus {
 .tree-view-container-wrapper {
   background-color: var(--vscode-sideBar-background);
   padding: 8px;
-  min-height: 200px;
-  flex: 1;
+  min-height: 0;
+  max-height: 100%;
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* VSCode Webview UI Toolkit component styles */
