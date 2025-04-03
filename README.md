@@ -18,7 +18,7 @@ See a demo in [here](https://repo2text.gziz.io)!
 ### General Settings
 
 - **Exclude Hidden Directories**: When enabled, directories starting with "." will be excluded (recommended for performance)
-- **Max File Size (KB)**: Files larger than this size will be excluded to prevent token limit issues
+- **Max File Size (MB)**: Files larger than this size will be excluded to prevent token limit issues
 
 ### Template Customization
 

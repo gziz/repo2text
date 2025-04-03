@@ -149,8 +149,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({
 
           <div className="settings-item-row">
             <div className="settings-item-label-container">
-              <label htmlFor="maxFileSizeKB" className="settings-item-label">
-                Max File Size (KB)
+              <label htmlFor="maxFileSizeMB" className="settings-item-label">
+                Max File Size (MB)
               </label>
               <div className="settings-item-description">
                 Files larger than this size will be excluded.
@@ -159,11 +159,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({
             <div className="settings-item-input">
               <input
                 type="number"
-                id="maxFileSizeKB"
-                name="maxFileSizeKB"
-                value={settings.maxFileSizeKB}
-                min="1"
-                max="1000"
+                id="maxFileSizeMB"
+                name="maxFileSizeMB"
+                value={settings.maxFileSizeMB}
+                min="0.1"
+                max="10"
+                step="0.1"
                 onChange={handleInputChange}
               />
             </div>

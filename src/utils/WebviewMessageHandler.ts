@@ -144,8 +144,8 @@ export class WebviewMessageHandler {
         await config.update('excludeHiddenDirectories', settings.excludeHiddenDirectories, vscode.ConfigurationTarget.Global);
       }
       
-      if (settings.maxFileSizeKB !== undefined) {
-        await config.update('maxFileSizeKB', settings.maxFileSizeKB, vscode.ConfigurationTarget.Global);
+      if (settings.maxFileSizeMB !== undefined) {
+        await config.update('maxFileSizeMB', settings.maxFileSizeMB, vscode.ConfigurationTarget.Global);
       }
       
       if (settings.respectGitignore !== undefined) {
@@ -208,7 +208,7 @@ export class WebviewMessageHandler {
       // Create settings object with fallbacks for everything
       const settings = {
         excludeHiddenDirectories: config.get('excludeHiddenDirectories', false),
-        maxFileSizeKB: config.get('maxFileSizeKB', 500),
+        maxFileSizeMB: config.get('maxFileSizeMB', 5),
         respectGitignore: config.get('respectGitignore', true),
         editorPromptTemplate,
         treeViewPromptTemplate,
@@ -227,7 +227,7 @@ export class WebviewMessageHandler {
       
       const fallbackSettings = {
         excludeHiddenDirectories: false,
-        maxFileSizeKB: 500,
+        maxFileSizeMB: 5,
         respectGitignore: true,
         editorPromptTemplate: defaultTemplates.editorTemplate,
         treeViewPromptTemplate: defaultTemplates.treeViewTemplate,
@@ -252,7 +252,7 @@ export class WebviewMessageHandler {
       // Create default settings object
       const defaultSettings = {
         excludeHiddenDirectories: false,
-        maxFileSizeKB: 500,
+        maxFileSizeMB: 5,
         respectGitignore: true,
         editorPromptTemplate: defaultTemplates.editorTemplate,
         treeViewPromptTemplate: defaultTemplates.treeViewTemplate,

@@ -87,10 +87,10 @@
           "default": false,
           "description": "Whether to exclude hidden directories (starting with '.*') from search results"
         },
-        "repo2text.maxFileSizeKB": {
+        "repo2text.maxFileSizeMB": {
           "type": "number",
-          "default": 500,
-          "description": "Maximum file size (in KB) to include in prompts. Files larger than this will be excluded to avoid exceeding token limits."
+          "default": 5,
+          "description": "Maximum file size (in MB) to include in prompts. Files larger than this will be excluded to avoid exceeding token limits."
         },
         "repo2text.editorTemplateString": {
           "type": "string",
