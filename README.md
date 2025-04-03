@@ -1,7 +1,7 @@
 # Repo 2 Text
 
 A VS Code extension that allows you to export your entire codebase or specific files into a single LLM-friendly text, directly from your IDE, no external tools needed.
-See a demo in [here](repo2text.gziz.io)!
+See a demo in [here](https://repo2text.gziz.io)!
 
 ## Features
 
