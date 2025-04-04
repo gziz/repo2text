@@ -32,8 +32,10 @@ interface TreeViewProps {
 // -------------------------------------------------------
 
 function getParentPath(fullPath: string): string {
-  if (!fullPath.includes("/")) return "";
-  const idx = fullPath.lastIndexOf("/");
+  // Normalize path separator to forward slash for consistent handling
+  const normalizedPath = fullPath.replace(/\\/g, '/');
+  if (!normalizedPath.includes("/")) return "";
+  const idx = normalizedPath.lastIndexOf("/");
   if (idx <= 0) return ""; // top-level or single slash
   return fullPath.substring(0, idx);
 }

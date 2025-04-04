@@ -87,6 +87,9 @@ export class WorkspaceFileManager {
                 .filter(line => line && !line.startsWith('#'))
                 // Convert patterns to glob format
                 .forEach(pattern => {
+                    // Normalize pattern to use forward slashes
+                    pattern = pattern.replace(/\\/g, '/');
+                    
                     // Remove leading slash if present
                     pattern = pattern.replace(/^\//, '');
                     
@@ -266,7 +269,8 @@ export class WorkspaceFileManager {
    */
   private async _getFilesWithGlob(folderPath: string, onlyFiles: boolean, ignorePatterns: string[]): Promise<Array<{path: string, stats?: any}>> {
     // Use fast-glob to find all entries in the folder
-    const globPattern = path.join(folderPath, '**/*');
+    // Use forward slashes for glob patterns regardless of platform
+    const globPattern = `${folderPath.replace(/\\/g, '/')}/**/*`;
     return await fg(globPattern, {
       onlyFiles,
       dot: true,
@@ -289,7 +293,8 @@ export class WorkspaceFileManager {
     }
 
     // Split path into segments for more accurate matching
-    const pathSegments = filePath.split(path.sep).filter(Boolean);
+    // Use a regex that splits on both / and \ for Windows compatibility
+    const pathSegments = filePath.split(/[\/\\]/).filter(Boolean);
     
     // Check if the file is in an excluded directory
     // Iterate through all path segments except the last one (which is the file name)
@@ -317,7 +322,8 @@ export class WorkspaceFileManager {
     }
     
     // Split path into segments for more accurate matching
-    const pathSegments = dirPath.split(path.sep).filter(Boolean);
+    // Use a regex that splits on both / and \ for Windows compatibility
+    const pathSegments = dirPath.split(/[\/\\]/).filter(Boolean);
     
     // Check if any segment matches the standard excluded directories
     for (const segment of pathSegments) {
@@ -386,8 +392,11 @@ export class WorkspaceFileManager {
         relativePath = path.relative(rootPath, filePath);
       }
       
+      // Normalize to forward slashes for consistent handling across platforms
+      relativePath = relativePath.replace(/\\/g, '/');
+      
       // Split the path and create the tree structure
-      const parts = relativePath.split(path.sep);
+      const parts = relativePath.split('/');
       let current = tree;
       
       for (let i = 0; i < parts.length; i++) {

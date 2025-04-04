@@ -81,12 +81,19 @@ export class PromptGenerator {
         const sortedKeys = Object.keys(node).sort();
         
         for (const key of sortedKeys) {
+          // Always use forward slashes for paths, regardless of platform
           const newPath = currentPath ? `${currentPath}/${key}` : key;
           
           // Add path if it's a file (empty object in the tree)
           if (Object.keys(node[key]).length === 0) {
             // Convert to absolute path if needed
-            const absolutePath = path.isAbsolute(newPath) ? newPath : path.join(rootPath, newPath);
+            let absolutePath;
+            if (path.isAbsolute(newPath)) {
+              absolutePath = newPath;
+            } else {
+              // Join path and normalize for platform compatibility
+              absolutePath = path.join(rootPath, newPath);
+            }
             orderedFilePaths.push(absolutePath);
           }
           
