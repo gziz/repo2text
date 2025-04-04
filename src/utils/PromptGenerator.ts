@@ -299,4 +299,25 @@ export class PromptGenerator {
     
     return TemplateManager.formatTemplate(templateString, variables);
   }
+
+  // Public method to get file contents for token counting
+  public async getFileContentsForTokenCounting(
+    mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>
+  ): Promise<Array<{path: string, content: string}>> {
+    try {
+      // Get workspace root path
+      const workspaceRootPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '';
+      
+      // Create file map and get ordered file paths
+      const { fileMapStr, orderedFilePaths } = await this._generateFileMap(mentions, workspaceRootPath);
+      
+      // Generate file contents using the ordered paths
+      const fileContents = await this._generateFileContentSection(mentions, orderedFilePaths);
+      
+      return fileContents;
+    } catch (error) {
+      console.error("Error getting file contents for token counting:", error);
+      return [];
+    }
+  }
 } 

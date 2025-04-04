@@ -55,9 +55,23 @@
 }
 
 .tree-footer {
-  padding: 8px;
+  margin-top: 10px;
   display: flex;
   justify-content: flex-end;
+  padding: 8px;
+}
+
+.tree-footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  gap: 10px;
+}
+
+.token-count {
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
 }
 
 .tree-node-container {

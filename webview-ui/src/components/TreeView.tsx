@@ -285,6 +285,9 @@ const TreeView: React.FC<TreeViewProps> = ({
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Token count state
+  const [tokenCount, setTokenCount] = useState<number | null>(null);
+
   // Debounce logic
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -292,6 +295,42 @@ const TreeView: React.FC<TreeViewProps> = ({
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  // Listen for messages from extension
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const message = event.data;
+      if (message.command === "tokenCount") {
+        setTokenCount(message.count);
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  // Request token count when selection changes
+  useEffect(() => {
+    if (selectedPaths.size > 0) {
+      // Convert selectedPaths to an array of items
+      const selectedItems = Array.from(selectedPaths)
+        .map((path) => pathToItem.get(path))
+        .filter(Boolean) as (WorkspaceFile | WorkspaceFolder)[];
+
+      const mentions: MentionItem[] = selectedItems.map((item) => ({
+        id: "relativePath" in item ? item.relativePath : "",
+        label: item.name,
+        type: item.name.includes(".") ? "file" : "folder",
+      }));
+
+      vscode.postMessage({
+        command: "calculateTokens",
+        mentions: mentions,
+      });
+    } else {
+      setTokenCount(null);
+    }
+  }, [selectedPaths, pathToItem]);
 
   // Auto-expand matching nodes when search query changes
   useEffect(() => {
@@ -586,9 +625,16 @@ const TreeView: React.FC<TreeViewProps> = ({
       </div>
 
       <div className="tree-footer">
-        <VSCodeButton onClick={handleCopySelected} disabled={selectedPaths.size === 0}>
-          Copy
-        </VSCodeButton>
+        <div className="tree-footer-content">
+          {tokenCount !== null && (
+            <div className="token-count">
+              {tokenCount.toLocaleString()} token{tokenCount !== 1 ? 's' : ''}
+            </div>
+          )}
+          <VSCodeButton onClick={handleCopySelected} disabled={selectedPaths.size === 0}>
+            Copy
+          </VSCodeButton>
+        </div>
       </div>
     </div>
   );

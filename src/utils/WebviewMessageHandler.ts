@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { WorkspaceFileManager } from "./WorkspaceFileManager";
 import { PromptGenerator } from "./PromptGenerator";
 import { TemplateManager } from './TemplateManager';
+import { TokenCounter } from './TokenCounter';
 
 /**
  * Handles communication between the webview and VSCode extension
@@ -58,6 +59,10 @@ export class WebviewMessageHandler {
             message.mentions, 
             message.source || 'editor' // Use provided source or default to 'editor'
           );
+          break;
+          
+        case "calculateTokens":
+          await this._handleCalculateTokensRequest(message.mentions);
           break;
           
         case "showMessage":
@@ -126,6 +131,32 @@ export class WebviewMessageHandler {
 
     } catch (error) {
       vscode.window.showErrorMessage("Failed to generate prompt: " + (error as Error).message);
+    }
+  }
+
+  // Handle a request to calculate tokens for selected files/folders
+  private async _handleCalculateTokensRequest(
+    mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>
+  ): Promise<void> {
+    try {
+      // Use the public method from PromptGenerator to get file contents
+      const fileContents = await this._promptGenerator.getFileContentsForTokenCounting(mentions);
+      
+      // Use the TokenCounter to count tokens in all selected files
+      const tokenCount = TokenCounter.countTokensInFiles(fileContents);
+      
+      // Send the token count back to the webview
+      this._webviewView.webview.postMessage({
+        command: "tokenCount",
+        count: tokenCount
+      });
+    } catch (error) {
+      console.error("Error calculating tokens:", error);
+      // Send a message with 0 tokens on error
+      this._webviewView.webview.postMessage({
+        command: "tokenCount",
+        count: 0
+      });
     }
   }
 
