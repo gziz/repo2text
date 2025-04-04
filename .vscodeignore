@@ -11,6 +11,14 @@ out/test/**
 # Ignore source code
 src/**
 
+
+
+node_modules/tiktoken/encoders/**
+!node_modules/tiktoken/encoders/cl100k_base.json
+!node_modules/tiktoken/encoders/cl100k_base.js
+!node_modules/tiktoken/encoders/cl100k_base.d.ts
+!node_modules/tiktoken/encoders/cl100k_base.cjs
+
 # Ignore all webview-ui files except the build directory
 webview-ui/src/**
 webview-ui/public/**

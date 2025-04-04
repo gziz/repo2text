@@ -1,4 +1,5 @@
-import * as tiktoken from 'tiktoken';
+import {Tiktoken} from 'tiktoken/lite';
+const cl100k_base = require("tiktoken/encoders/cl100k_base.json");
 
 /**
  * Utility class for counting tokens using the tiktoken library
@@ -13,7 +14,13 @@ export class TokenCounter {
   private static getEncoder(): any {
     if (!this.encoder) {
       // Using cl100k_base encoder which is used by GPT-4 and GPT-3.5-Turbo
-      this.encoder = tiktoken.get_encoding("cl100k_base");
+      const encoder = new Tiktoken(
+        cl100k_base.bpe_ranks,
+        cl100k_base.special_tokens,
+        cl100k_base.pat_str
+      );
+      
+      this.encoder = encoder;
     }
     return this.encoder;
   }
