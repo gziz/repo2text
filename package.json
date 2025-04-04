@@ -1,12 +1,12 @@
 {
-  "name": "repo2text",
+  "name": "repotext",
   "publisher": "gziz",
-  "displayName": "Repo 2 Text",
+  "displayName": "RepoText",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gziz/repo2text"
+    "url": "https://github.com/gziz/repotext"
   },
-  "homepage": "https://repo2text.gziz.io",
+  "homepage": "https://repotext.gziz.io",
   "description": "Export your entire codebase or specific files into a single LLM-friendly text",
   "version": "0.0.1",
   "license": "MIT",
@@ -21,21 +21,21 @@
   "contributes": {
     "commands": [
       {
-        "command": "repo2text.openConfigPage",
+        "command": "repotext.openConfigPage",
         "category": "",
         "title": "Open Settings",
         "icon": "$(gear)",
         "group": "navigation"
       },
       {
-        "command": "repo2text.openEditorView",
+        "command": "repotext.openEditorView",
         "category": "",
         "title": "Open Prompt View",
         "icon": "$(pencil)",
         "group": "navigation"
       },
       {
-        "command": "repo2text.refreshWorkspace",
+        "command": "repotext.refreshWorkspace",
         "category": "",
         "title": "Refresh Workspace",
         "icon": "$(refresh)",
@@ -45,66 +45,66 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "repo2text",
-          "title": "repo2text",
+          "id": "repotext",
+          "title": "RepoText",
           "icon": "resources/icon_for_activitybar.png"
         }
       ]
     },
     "views": {
-      "repo2text": [
+      "repotext": [
         {
           "type": "webview",
-          "id": "repo2textView",
-          "name": "Repo 2 Text"
+          "id": "repotextView",
+          "name": "RepoText"
         }
       ]
     },
     "menus": {
       "view/title": [
         {
-          "command": "repo2text.refreshWorkspace",
+          "command": "repotext.refreshWorkspace",
           "group": "navigation@1",
-          "when": "view == repo2textView && repo2text.currentWebview == editor"
+          "when": "view == repotextView && repotext.currentWebview == editor"
         },
         {
-          "command": "repo2text.openEditorView",
+          "command": "repotext.openEditorView",
           "group": "navigation@2",
-          "when": "view == repo2textView && repo2text.currentWebview != editor"
+          "when": "view == repotextView && repotext.currentWebview != editor"
         },
         {
-          "command": "repo2text.openConfigPage",
+          "command": "repotext.openConfigPage",
           "group": "navigation@3",
-          "when": "view == repo2textView && repo2text.currentWebview != settings"
+          "when": "view == repotextView && repotext.currentWebview != settings"
         }
       ]
     },
     "configuration": {
-      "title": "Repo 2 Text",
+      "title": "RepoText",
       "properties": {
-        "repo2text.excludeHiddenDirectories": {
+        "repotext.excludeHiddenDirectories": {
           "type": "boolean",
           "default": false,
           "description": "Whether to exclude hidden directories (starting with '.*') from search results"
         },
-        "repo2text.maxFileSizeMB": {
+        "repotext.maxFileSizeMB": {
           "type": "number",
           "default": 5,
           "description": "Maximum file size (in MB) to include in prompts. Files larger than this will be excluded to avoid exceeding token limits."
         },
-        "repo2text.editorTemplateString": {
+        "repotext.editorTemplateString": {
           "type": "string",
           "description": "Template string for formatting prompts from the editor. Use {{fileMap}}, {{fileContents}}, and {{userText}} as variables."
         },
-        "repo2text.treeViewTemplateString": {
+        "repotext.treeViewTemplateString": {
           "type": "string",
           "description": "Template string for formatting prompts from the tree view. Use {{fileMap}} and {{fileContents}} as variables."
         },
-        "repo2text.fileTemplateString": {
+        "repotext.fileTemplateString": {
           "type": "string",
           "description": "Template string for formatting individual files in the prompt. Use {{filePath}} and {{fileContent}} as variables."
         },
-        "repo2text.respectGitignore": {
+        "repotext.respectGitignore": {
           "type": "boolean",
           "default": true,
           "description": "Respect .gitignore patterns when scanning workspace files"

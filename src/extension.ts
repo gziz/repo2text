@@ -17,11 +17,11 @@ export function activate(context: ExtensionContext) {
   });
 
   // Register the sidebar view provider
-  const repo2textViewProvider = new ViewProvider(context.extensionUri, workspaceFileManager);
+  const repotextViewProvider = new ViewProvider(context.extensionUri, workspaceFileManager);
   context.subscriptions.push(
     window.registerWebviewViewProvider(
       ViewProvider.viewType,
-      repo2textViewProvider,
+      repotextViewProvider,
       {
         webviewOptions: {
           retainContextWhenHidden: true
@@ -32,7 +32,7 @@ export function activate(context: ExtensionContext) {
   
   // Register the refresh workspace command
   context.subscriptions.push(
-    commands.registerCommand("repo2text.refreshWorkspace", async () => {
+    commands.registerCommand("repotext.refreshWorkspace", async () => {
       try {
         await workspaceFileManager.refreshCache();
       } catch (error) {
@@ -43,17 +43,17 @@ export function activate(context: ExtensionContext) {
 
   // Register the settings command
   context.subscriptions.push(
-    commands.registerCommand("repo2text.openConfigPage", () => {
+    commands.registerCommand("repotext.openConfigPage", () => {
       // Send a message to the webview to switch to the settings view
-      repo2textViewProvider.showSettingsView();
+      repotextViewProvider.showSettingsView();
     })
   );
   
   // Register the return to main view command
   context.subscriptions.push(
-    commands.registerCommand("repo2text.openEditorView", () => {
+    commands.registerCommand("repotext.openEditorView", () => {
       // Send a message to the webview to switch back to the main view
-      repo2textViewProvider.showEditorView();
+      repotextViewProvider.showEditorView();
     })
   );
 

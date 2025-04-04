@@ -1,7 +1,7 @@
-# Repo 2 Text
+# RepoText
 
 A VS Code extension that allows you to export your entire codebase or specific files into a single LLM-friendly text, directly from your IDE, no external tools needed.
-See a demo in [here](https://repo2text.gziz.io)!
+See a demo in [here](https://repotext.gziz.io)!
 
 ## Features
 
@@ -22,7 +22,7 @@ See a demo in [here](https://repo2text.gziz.io)!
 
 ### Template Customization
 
-repo2text offers powerful template customization options:
+repotext offers powerful template customization options:
 
 #### Editor Prompt Template
 
@@ -50,4 +50,3 @@ Customize how each file is displayed within the prompt:
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-

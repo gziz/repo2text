@@ -6,10 +6,10 @@ import { WebviewMessageHandler } from "../utils/WebviewMessageHandler";
 import { PromptGenerator } from "../utils/PromptGenerator";
 
 /**
- * Provider for the repo2text sidebar view
+ * Provider for the repotext sidebar view
  */
 export class ViewProvider implements vscode.WebviewViewProvider {
-  public static readonly viewType = "repo2textView";
+  public static readonly viewType = "repotextView";
 
   private _currentWebview: string = "editor";
 
@@ -81,7 +81,7 @@ export class ViewProvider implements vscode.WebviewViewProvider {
       if (message.command === "webviewChanged") {
         this._currentWebview = message.view;
         // Update VS Code context
-        vscode.commands.executeCommand('setContext', 'repo2text.currentWebview', this._currentWebview);
+        vscode.commands.executeCommand('setContext', 'repotext.currentWebview', this._currentWebview);
       }
     });
     
