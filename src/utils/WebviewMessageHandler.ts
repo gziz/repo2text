@@ -43,6 +43,11 @@ export class WebviewMessageHandler {
           await this._handleGetSettingsRequest();
           break;
           
+        case "openFile":
+          // Handle opening a file in VS Code
+          await this._handleOpenFileRequest(message.path);
+          break;
+          
         case "getWorkspaceFiles":
           // Only send workspace files without refreshing everything
           this._sendWorkspaceFiles();
@@ -302,6 +307,17 @@ export class WebviewMessageHandler {
       });
       
       vscode.window.showErrorMessage("Failed to get default settings: " + (error as Error).message);
+    }
+  }
+
+  // Handle a request to open a file in VS Code
+  private async _handleOpenFileRequest(path: string): Promise<void> {
+    try {
+      const fileUri = vscode.Uri.file(path);
+      await vscode.workspace.openTextDocument(fileUri).then(doc => vscode.window.showTextDocument(doc));
+    } catch (error) {
+      console.error(`Error opening file:`, error);
+      vscode.window.showErrorMessage("Failed to open file: " + (error as Error).message);
     }
   }
 

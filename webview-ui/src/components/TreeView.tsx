@@ -576,7 +576,22 @@ const TreeView: React.FC<TreeViewProps> = ({
           </span>
 
           {/* Name (clickable to toggle selection) */}
-          <span className="node-name" onClick={() => handleSelectNode(node)} title={node.path}>
+          <span 
+            className="node-name" 
+            onClick={() => {
+              if (node.type === "file") {
+                // Send message to VS Code to open this file
+                vscode.postMessage({
+                  command: "openFile",
+                  path: node.path
+                });
+              } else {
+                // For folders, toggle expansion
+                handleToggleExpand(node.id);
+              }
+            }}
+            title={node.path}
+          >
             {node.name}
           </span>
         </div>
