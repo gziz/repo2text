@@ -3,6 +3,7 @@ import * as path from "path";
 import * as fg from "fast-glob";
 import { COMMON_EXCLUDED_DIRS, EXCLUDED_FILE_EXTENSIONS } from "./constants";
 import { WorkspaceFolder, WorkspaceFile } from "./types";
+import { ConfigurationManager } from "./ConfigurationManager";
 
 /**
  * Manages file system operations and caching for the repotext extension
@@ -26,14 +27,17 @@ export class WorkspaceFileManager {
 
   // Add a new private property to track initialization
   private effectiveExcludedDirsInitialized: boolean = false;
+  
+  // Configuration manager instance
+  private configManager: ConfigurationManager;
 
   constructor() {
+    // Get the configuration manager instance
+    this.configManager = ConfigurationManager.getInstance();
+    
     // Watch for configuration changes
-    vscode.workspace.onDidChangeConfiguration(event => {
-        if (event.affectsConfiguration('repotext.excludeHiddenDirectories') ||
-            event.affectsConfiguration('repotext.respectGitignore')) {
-            this.updateEffectiveExcludedDirs();
-        }
+    this.configManager.onConfigurationChanged(() => {
+      this.updateEffectiveExcludedDirs();
     });
   }
 
@@ -50,9 +54,9 @@ export class WorkspaceFileManager {
    * Update the effective excluded directories based on current configuration
    */
   private async updateEffectiveExcludedDirs(): Promise<void> {
-    // Check if we should exclude hidden directories
-    this.excludeHiddenDirectories = vscode.workspace.getConfiguration('repotext').get('excludeHiddenDirectories', true);
-    const respectGitignore = vscode.workspace.getConfiguration('repotext').get('respectGitignore', true);
+    // Get configuration values from the manager
+    this.excludeHiddenDirectories = this.configManager.excludeHiddenDirectories;
+    const respectGitignore = this.configManager.respectGitignore;
 
     this.globalIgnorePatterns = new Set([
         ...COMMON_EXCLUDED_DIRS.map(dir => `**/${dir}/**`),

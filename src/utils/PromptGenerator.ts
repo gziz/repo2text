@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { WorkspaceFileManager } from "./WorkspaceFileManager";
 import { TemplateManager } from './TemplateManager';
+import { BYTES_PER_MB, PRECISION_FACTOR } from './constants';
+import { ConfigurationManager } from './ConfigurationManager';
 
 /**
  * Handles the generation of prompts with context from the workspace
@@ -9,10 +11,12 @@ import { TemplateManager } from './TemplateManager';
 export class PromptGenerator {
   private _fileManager: WorkspaceFileManager;
   private _templateManager: TemplateManager;
+  private _configManager: ConfigurationManager;
 
   constructor(fileManager: WorkspaceFileManager) {
     this._fileManager = fileManager;
     this._templateManager = new TemplateManager();
+    this._configManager = ConfigurationManager.getInstance();
   }
 
   // Add static factory method here too
@@ -186,10 +190,9 @@ export class PromptGenerator {
         return;
       }
       
-      // Get maximum file size from configuration
-      const configuration = vscode.workspace.getConfiguration('repotext');
-      const maxFileSizeMB = configuration.get<number>('maxFileSizeMB', 5);
-      const maxFileSize = maxFileSizeMB * 1024 * 1024; // Convert MB to bytes
+      // Get maximum file size from configuration manager
+      const maxFileSizeMB = this._configManager.maxFileSizeMB;
+      const maxFileSize = maxFileSizeMB * BYTES_PER_MB; // Convert MB to bytes
       
       // Get files from the folder using FileManager
       const { entries, warnings: folderWarnings } = await this._fileManager.getFilesFromFolder(
@@ -223,17 +226,16 @@ export class PromptGenerator {
     }
 
     try {
-      // Get maximum file size from configuration
-      const configuration = vscode.workspace.getConfiguration('repotext');
-      const maxFileSizeMB = configuration.get<number>('maxFileSizeMB', 5);
-      const maxFileSize = maxFileSizeMB * 1024 * 1024; // Convert MB to bytes
+      // Get maximum file size from configuration manager
+      const maxFileSizeMB = this._configManager.maxFileSizeMB;
+      const maxFileSize = maxFileSizeMB * BYTES_PER_MB; // Convert MB to bytes
       
       // Check file size before reading
       const fileStat = await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
       if (fileStat.size > maxFileSize) {
         fileContents.push({
           path: vscode.workspace.asRelativePath(filePath),
-          content: `\`\`\`\nFile too large (${Math.round(fileStat.size / (1024 * 1024) * 100) / 100}MB). Max size: ${maxFileSizeMB}MB\n\`\`\``
+          content: `\`\`\`\nFile too large (${Math.round(fileStat.size / BYTES_PER_MB * PRECISION_FACTOR) / PRECISION_FACTOR}MB). Max size: ${maxFileSizeMB}MB\n\`\`\``
         });
         processedPaths.add(filePath);
         return;

@@ -1,11 +1,15 @@
 import { commands, ExtensionContext, window } from "vscode";
 import { ViewProvider } from "./panels/ViewProvider";
 import { WorkspaceFileManager } from "./utils/WorkspaceFileManager";
+import { ConfigurationManager } from "./utils/ConfigurationManager";
 
 // Create a singleton instance of the WorkspaceFileManager
 export let workspaceFileManager: WorkspaceFileManager;
 
 export function activate(context: ExtensionContext) {
+  // Initialize the ConfigurationManager first (it's a singleton)
+  ConfigurationManager.getInstance();
+  
   // Initialize the WorkspaceFileManager
   workspaceFileManager = new WorkspaceFileManager();
   

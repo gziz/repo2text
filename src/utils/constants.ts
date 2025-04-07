@@ -100,3 +100,26 @@ export const EXCLUDED_FILE_EXTENSIONS = [
   ".jsonl",
   ".ico",
 ];
+
+/** File size constants */
+export const DEFAULT_MAX_FILE_SIZE_MB = 5;
+export const BYTES_PER_KB = 1024;
+export const BYTES_PER_MB = BYTES_PER_KB * 1024;
+export const PRECISION_FACTOR = 100; // For rounding to 2 decimal places
+
+/** Configuration keys */
+export const CONFIG_KEYS = {
+  EXCLUDE_HIDDEN_DIRS: 'excludeHiddenDirectories',
+  RESPECT_GITIGNORE: 'respectGitignore',
+  MAX_FILE_SIZE_MB: 'maxFileSizeMB',
+  EDITOR_TEMPLATE_STRING: 'editorTemplateString',
+  TREE_VIEW_TEMPLATE_STRING: 'treeViewTemplateString',
+  FILE_TEMPLATE_STRING: 'fileTemplateString'
+};
+
+/** Default template values */
+export const DEFAULT_TEMPLATES = {
+  EDITOR_TEMPLATE: "<file_map>\n{{fileMap}}\n</file_map>\n\n<file_contents>\n{{fileContents}}\n</file_contents>\n\n<user>\n{{userText}}\n</user>",
+  TREE_VIEW_TEMPLATE: "<file_map>\n{{fileMap}}\n</file_map>\n\n<file_contents>\n{{fileContents}}\n</file_contents>",
+  FILE_TEMPLATE: "-------------------------\n{{filePath}}\n-------------------------\n{{fileContent}}\n"
+};

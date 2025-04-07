@@ -1,19 +1,15 @@
 import * as vscode from 'vscode';
+import { ConfigurationManager } from './ConfigurationManager';
+import { CONFIG_KEYS, DEFAULT_TEMPLATES } from './constants';
 
 export class TemplateManager {
-  // Default templates
-  private static readonly DEFAULT_EDITOR_TEMPLATE = 
-    "<file_map>\n{{fileMap}}\n</file_map>\n\n<file_contents>\n{{fileContents}}\n</file_contents>\n\n<user>\n{{userText}}\n</user>";
+  // Store the configuration manager instance
+  private configManager: ConfigurationManager;
   
-  private static readonly DEFAULT_TREEVIEW_TEMPLATE = 
-    "<file_map>\n{{fileMap}}\n</file_map>\n\n<file_contents>\n{{fileContents}}\n</file_contents>";
-  
-  private static readonly DEFAULT_FILE_TEMPLATE = 
-    "-------------------------\n{{filePath}}\n-------------------------\n{{fileContent}}\n";
-
   // Constructor doesn't need to take an extension context
   constructor() {
-    // No initialization needed
+    // Get the configuration manager instance once
+    this.configManager = ConfigurationManager.getInstance();
   }
 
   // Convert TipTap document to string template
@@ -23,10 +19,16 @@ export class TemplateManager {
     }
     
     let result = '';
-    for (const node of document.content) {
+    const paragraphs = document.content.length;
+    
+    for (let i = 0; i < paragraphs; i++) {
+      const node = document.content[i];
       if (node.type === 'paragraph') {
         if (!node.content) {
-          result += '\n';
+          // Only add newline if it's not the last paragraph
+          if (i < paragraphs - 1) {
+            result += '\n';
+          }
           continue;
         }
         
@@ -37,7 +39,11 @@ export class TemplateManager {
             result += `{{${inline.attrs.id}}}`;
           }
         }
-        result += '\n';
+        
+        // Only add newline if it's not the last paragraph
+        if (i < paragraphs - 1) {
+          result += '\n';
+        }
       }
     }
     
@@ -59,7 +65,9 @@ export class TemplateManager {
       content: [] as any[]
     };
     
-    const lines = template.split('\n');
+    // Normalize line endings and split
+    const normalizedTemplate = template.replace(/\r\n/g, '\n');
+    const lines = normalizedTemplate.split('\n');
     
     for (const line of lines) {
       const paragraph: any = {
@@ -107,42 +115,34 @@ export class TemplateManager {
         }
       }
       
-      // Only add the paragraph if it has content or if it's an empty line
-      if (paragraph.content.length > 0 || lines.length > 1) {
-        result.content.push(paragraph);
-      }
+      // Always add the paragraph, even if empty (to preserve line breaks)
+      result.content.push(paragraph);
     }
     
     return result;
   }
   
-  // Add the missing loadTemplates method
+  // Load templates from configuration
   public async loadTemplates(): Promise<{
     editorTemplate: string,
     treeViewTemplate: string,
     fileTemplate: string
   }> {
     try {
-      const config = vscode.workspace.getConfiguration('repotext');
-      
-      // Get settings values with defaults if not set
-      const editorTemplate = config.get<string>('editorTemplateString');
-      const treeViewTemplate = config.get<string>('treeViewTemplateString');
-      const fileTemplate = config.get<string>('fileTemplateString');
-      
-      // Return templates, using defaults for any that are empty
+      // Use the stored configuration manager instance
+      // Get template strings from configuration manager
       return {
-        editorTemplate: editorTemplate || TemplateManager.DEFAULT_EDITOR_TEMPLATE,
-        treeViewTemplate: treeViewTemplate || TemplateManager.DEFAULT_TREEVIEW_TEMPLATE,
-        fileTemplate: fileTemplate || TemplateManager.DEFAULT_FILE_TEMPLATE
+        editorTemplate: this.configManager.editorTemplateString,
+        treeViewTemplate: this.configManager.treeViewTemplateString,
+        fileTemplate: this.configManager.fileTemplateString
       };
     } catch (error) {
       // On any error, return default templates
       console.error('Error loading templates, using defaults:', error);
       return {
-        editorTemplate: TemplateManager.DEFAULT_EDITOR_TEMPLATE,
-        treeViewTemplate: TemplateManager.DEFAULT_TREEVIEW_TEMPLATE,
-        fileTemplate: TemplateManager.DEFAULT_FILE_TEMPLATE
+        editorTemplate: DEFAULT_TEMPLATES.EDITOR_TEMPLATE,
+        treeViewTemplate: DEFAULT_TEMPLATES.TREE_VIEW_TEMPLATE,
+        fileTemplate: DEFAULT_TEMPLATES.FILE_TEMPLATE
       };
     }
   }
@@ -159,16 +159,16 @@ export class TemplateManager {
     return result;
   }
   
-  // Add static method to get default templates
+  // Get default templates
   public static getDefaultTemplates(): {
     editorTemplate: any,
     treeViewTemplate: any,
     fileTemplate: any
   } {
     return {
-      editorTemplate: TemplateManager.stringToDocument(TemplateManager.DEFAULT_EDITOR_TEMPLATE),
-      treeViewTemplate: TemplateManager.stringToDocument(TemplateManager.DEFAULT_TREEVIEW_TEMPLATE),
-      fileTemplate: TemplateManager.stringToDocument(TemplateManager.DEFAULT_FILE_TEMPLATE)
+      editorTemplate: TemplateManager.stringToDocument(DEFAULT_TEMPLATES.EDITOR_TEMPLATE),
+      treeViewTemplate: TemplateManager.stringToDocument(DEFAULT_TEMPLATES.TREE_VIEW_TEMPLATE),
+      fileTemplate: TemplateManager.stringToDocument(DEFAULT_TEMPLATES.FILE_TEMPLATE)
     };
   }
-} 
+}

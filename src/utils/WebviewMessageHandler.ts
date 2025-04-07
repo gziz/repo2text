@@ -3,6 +3,8 @@ import { WorkspaceFileManager } from "./WorkspaceFileManager";
 import { PromptGenerator } from "./PromptGenerator";
 import { TemplateManager } from './TemplateManager';
 import { TokenCounter } from './TokenCounter';
+import { ConfigurationManager } from './ConfigurationManager';
+import { CONFIG_KEYS } from './constants';
 
 /**
  * Handles communication between the webview and VSCode extension
@@ -15,6 +17,7 @@ export class WebviewMessageHandler {
   private _messageListener?: vscode.Disposable;
   private _activeStatusBarMessages: vscode.Disposable[] = [];
   private _templateManager: TemplateManager;
+  private _configManager: ConfigurationManager;
 
   constructor(
     webviewView: vscode.WebviewView,
@@ -27,6 +30,7 @@ export class WebviewMessageHandler {
     this._promptGenerator = promptGenerator;
     this._refreshCallback = refreshCallback;
     this._templateManager = new TemplateManager(); // No parameters needed
+    this._configManager = ConfigurationManager.getInstance();
 
     // Set up event listeners
     this._setupMessageListeners();
@@ -173,51 +177,43 @@ export class WebviewMessageHandler {
   // Handle a request to save settings
   private async _handleSaveSettingsRequest(settings: any): Promise<void> {
     try {
-      // Save the setting to its proper configuration key
-      const config = vscode.workspace.getConfiguration('repotext');
-      
+      // Update each setting
       if (settings.excludeHiddenDirectories !== undefined) {
-        await config.update('excludeHiddenDirectories', settings.excludeHiddenDirectories, vscode.ConfigurationTarget.Global);
-      }
-      
-      if (settings.maxFileSizeMB !== undefined) {
-        await config.update('maxFileSizeMB', settings.maxFileSizeMB, vscode.ConfigurationTarget.Global);
+        await this._configManager.updateConfiguration(CONFIG_KEYS.EXCLUDE_HIDDEN_DIRS, settings.excludeHiddenDirectories);
       }
       
       if (settings.respectGitignore !== undefined) {
-        await config.update('respectGitignore', settings.respectGitignore, vscode.ConfigurationTarget.Global);
+        await this._configManager.updateConfiguration(CONFIG_KEYS.RESPECT_GITIGNORE, settings.respectGitignore);
       }
       
-      // Convert from TipTap document to string before saving
+      if (settings.maxFileSizeMB !== undefined) {
+        await this._configManager.updateConfiguration(CONFIG_KEYS.MAX_FILE_SIZE_MB, settings.maxFileSizeMB);
+      }
+      
+      // For templates, we need to convert from TipTap document to string
       if (settings.editorPromptTemplate) {
         const templateString = TemplateManager.documentToString(settings.editorPromptTemplate);
-        await config.update('editorTemplateString', templateString, vscode.ConfigurationTarget.Global);
+        await this._configManager.updateConfiguration(CONFIG_KEYS.EDITOR_TEMPLATE_STRING, templateString);
       }
       
       if (settings.treeViewPromptTemplate) {
         const templateString = TemplateManager.documentToString(settings.treeViewPromptTemplate);
-        await config.update('treeViewTemplateString', templateString, vscode.ConfigurationTarget.Global);
+        await this._configManager.updateConfiguration(CONFIG_KEYS.TREE_VIEW_TEMPLATE_STRING, templateString);
       }
       
       if (settings.fileTemplate) {
         const templateString = TemplateManager.documentToString(settings.fileTemplate);
-        await config.update('fileTemplateString', templateString, vscode.ConfigurationTarget.Global);
+        await this._configManager.updateConfiguration(CONFIG_KEYS.FILE_TEMPLATE_STRING, templateString);
       }
       
-      this._webviewView.webview.postMessage({ 
-        command: "settingsSaved",
-        success: true
+      // Notify the webview that settings were saved
+      this._webviewView.webview.postMessage({
+        command: "settingsSaved"
       });
       
       vscode.window.showInformationMessage("Settings saved successfully!");
     } catch (error) {
       console.error(`Error saving settings:`, error);
-      this._webviewView.webview.postMessage({ 
-        command: "settingsSaved",
-        success: false,
-        error: (error as Error).message
-      });
-      
       vscode.window.showErrorMessage("Failed to save settings: " + (error as Error).message);
     }
   }
@@ -225,10 +221,7 @@ export class WebviewMessageHandler {
   // Handle a request to get the current settings
   private async _handleGetSettingsRequest(): Promise<void> {
     try {
-      // Get the setting from the configuration
-      const config = vscode.workspace.getConfiguration('repotext');
-      
-      // Load template strings
+      // Load templates from the TemplateManager
       const templates = await this._templateManager.loadTemplates();
       
       // Verify templates contain values (don't proceed with undefined templates)
@@ -241,11 +234,11 @@ export class WebviewMessageHandler {
       const treeViewPromptTemplate = TemplateManager.stringToDocument(templates.treeViewTemplate);
       const fileTemplate = TemplateManager.stringToDocument(templates.fileTemplate);
       
-      // Create settings object with fallbacks for everything
+      // Get settings from the configuration manager
       const settings = {
-        excludeHiddenDirectories: config.get('excludeHiddenDirectories', false),
-        maxFileSizeMB: config.get('maxFileSizeMB', 5),
-        respectGitignore: config.get('respectGitignore', true),
+        excludeHiddenDirectories: this._configManager.excludeHiddenDirectories,
+        maxFileSizeMB: this._configManager.maxFileSizeMB,
+        respectGitignore: this._configManager.respectGitignore,
         editorPromptTemplate,
         treeViewPromptTemplate,
         fileTemplate
@@ -339,5 +332,18 @@ export class WebviewMessageHandler {
       message.dispose();
     }
     this._activeStatusBarMessages = [];
+  }
+
+  private _showStatusBarMessage(message: string, timeout: number): void {
+    const statusBarMessage = vscode.window.setStatusBarMessage(message);
+    this._activeStatusBarMessages.push(statusBarMessage);
+    setTimeout(() => {
+      statusBarMessage.dispose();
+      // Remove from active messages after disposal
+      const index = this._activeStatusBarMessages.indexOf(statusBarMessage);
+      if (index > -1) {
+        this._activeStatusBarMessages.splice(index, 1);
+      }
+    }, timeout);
   }
 } 
