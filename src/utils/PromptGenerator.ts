@@ -35,14 +35,11 @@ export class PromptGenerator {
       // Get workspace root path
       const workspaceRootPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '';
       
-      // Create file map and get ordered file paths
-      const { fileMapStr, orderedFilePaths } = await this._generateFileMap(mentions, workspaceRootPath);
-      
-      // Generate file contents using the ordered paths
-      const fileContentsStr = await this._generateFileContentSection(mentions, orderedFilePaths);
+      // Process files and get both the file map and contents in one pass
+      const { fileMapStr, fileContents } = await this._processFiles(mentions, workspaceRootPath);
       
       // Format the final prompt with the appropriate template
-      const prompt = await this._formatPrompt(fileMapStr, fileContentsStr, userText, options.source);
+      const prompt = await this._formatPrompt(fileMapStr, fileContents, userText, options.source);
       return prompt;
 
     } catch (error) {
@@ -51,10 +48,11 @@ export class PromptGenerator {
     }
   }
 
-  // Generate a file map showing the structure of the mentioned files/folders
-  private async _generateFileMap(mentions: Array<{id: string, label: string, type: string}>, rootPath: string): Promise<{fileMapStr: string, orderedFilePaths: string[]}> {
+  // Process files to generate both file map and file contents in a single pass
+  private async _processFiles(mentions: Array<{id: string, label: string, type: string, uniqueId?: string}>, rootPath: string): 
+    Promise<{fileMapStr: string, fileContents: Array<{path: string, content: string}>}> {
     try {
-      // Track all file paths to include in the map
+      // Track all file paths to include
       const allFilePaths = new Set<string>();
       
       // First add all directly mentioned files
@@ -71,12 +69,12 @@ export class PromptGenerator {
       }
       
       if (allFilePaths.size === 0) {
-        return { fileMapStr: '', orderedFilePaths: [] };
+        return { fileMapStr: '', fileContents: [] };
       }
       
-      // Use FileManager to build and render the tree
+      // Build and render the file tree for the file map
       const tree = this._fileManager.buildFileTree(allFilePaths, rootPath);
-      const fileMapStr = this._fileManager.renderTree(tree)
+      const fileMapStr = this._fileManager.renderTree(tree);
       
       // Extract ordered file paths from the tree
       const orderedFilePaths: string[] = [];
@@ -108,13 +106,31 @@ export class PromptGenerator {
       
       extractOrderedPaths(tree);
       
-      return { fileMapStr, orderedFilePaths };
+      // Now process the files to get their contents
+      const processedPaths = new Set<string>();
+      const fileContents: Array<{path: string, content: string}> = [];
+      const warnings: string[] = [];
+      
+      // Process each file path in order
+      for (const filePath of orderedFilePaths) {
+        await this._processFileForContent(filePath, processedPaths, fileContents);
+      }
+      
+      // Process any remaining files from folders
+      for (const mention of mentions) {
+        if (mention.type === 'folder') {
+          await this._processFilesInFolder(mention.id, processedPaths, fileContents, warnings);
+        }
+      }
+      
+      return { fileMapStr, fileContents };
+      
     } catch (error) {
-      console.error("Error generating file map:", error);
-      return { fileMapStr: '', orderedFilePaths: [] };
+      console.error("Error processing files:", error);
+      return { fileMapStr: '', fileContents: [] };
     }
   }
-  
+
   // Helper method to collect all files in a folder recursively
   private async _collectFilesInFolder(folderPath: string, filePaths: Set<string>): Promise<void> {
     try {
@@ -133,53 +149,6 @@ export class PromptGenerator {
     } catch (error) {
       console.error(`Error collecting files from folder ${folderPath}:`, error);
     }
-  }
-  
-  // Extract the contents of mentioned files
-  private async _generateFileContentSection(
-    mentions: Array<{id: string, label: string, type: string}>, 
-    orderedFilePaths: string[] = []
-  ): Promise<Array<{path: string, content: string}>> {
-    // Create empty file contents array
-    const fileContents: Array<{path: string, content: string}> = [];
-    // Track processed files to avoid duplicates
-    const processedFilePaths = new Set<string>();
-    // Track warnings
-    const warnings: string[] = [];
-    
-    // Process files in the specified order if provided
-    if (orderedFilePaths.length > 0) {
-      // Process files in the exact order they appear in the file map
-      for (const filePath of orderedFilePaths) {
-        await this._processFileForContent(filePath, processedFilePaths, fileContents);
-      }
-      
-      // Process any folders that might contain files not yet processed
-      for (const mention of mentions) {
-        if (mention.type === 'folder') {
-          await this._processFilesInFolder(mention.id, processedFilePaths, fileContents, warnings);
-        }
-      }
-    } else {
-      // Fall back to old method if no orderedFilePaths provided
-      for (const mention of mentions) {
-        if (mention.type === 'file') {
-          await this._processFileForContent(mention.id, processedFilePaths, fileContents);
-        } else if (mention.type === 'folder') {
-          await this._processFilesInFolder(mention.id, processedFilePaths, fileContents, warnings);
-        }
-      }
-    }
-    
-    // Add warnings as special comment file if there are any
-    if (warnings.length > 0) {
-      fileContents.push({
-        path: "_system/warnings.txt",
-        content: "```\n" + warnings.join("\n") + "\n```"
-      });
-    }
-    
-    return fileContents;
   }
 
   // Helper method to process all files in a folder recursively
@@ -310,11 +279,8 @@ export class PromptGenerator {
       // Get workspace root path
       const workspaceRootPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || '';
       
-      // Create file map and get ordered file paths
-      const { fileMapStr, orderedFilePaths } = await this._generateFileMap(mentions, workspaceRootPath);
-      
-      // Generate file contents using the ordered paths
-      const fileContents = await this._generateFileContentSection(mentions, orderedFilePaths);
+      // Use the consolidated method to process files
+      const { fileContents } = await this._processFiles(mentions, workspaceRootPath);
       
       return fileContents;
     } catch (error) {
