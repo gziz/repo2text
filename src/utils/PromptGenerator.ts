@@ -111,16 +111,36 @@ export class PromptGenerator {
       const fileContents: Array<{path: string, content: string}> = [];
       const warnings: string[] = [];
       
-      // Process each file path in order
-      for (const filePath of orderedFilePaths) {
-        await this._processFileForContent(filePath, processedPaths, fileContents);
+      // Process file paths in parallel using Promise.all while preserving order
+      await Promise.all(
+        orderedFilePaths.map(async (filePath) => {
+          // Create a temporary array to hold this file's content
+          const tempContents: Array<{path: string, content: string}> = [];
+          await this._processFileForContent(filePath, processedPaths, tempContents);
+          
+          // If content was added, copy it to the main fileContents array
+          if (tempContents.length > 0) {
+            fileContents.push(tempContents[0]);
+          }
+        })
+      );
+      
+      // Process any remaining files from folders in parallel
+      const folderMentions = mentions.filter(mention => mention.type === 'folder');
+      if (folderMentions.length > 0) {
+        await Promise.all(
+          folderMentions.map(mention => 
+            this._processFilesInFolder(mention.id, processedPaths, fileContents, warnings)
+          )
+        );
       }
       
-      // Process any remaining files from folders
-      for (const mention of mentions) {
-        if (mention.type === 'folder') {
-          await this._processFilesInFolder(mention.id, processedPaths, fileContents, warnings);
-        }
+      // Add warnings as special comment file if there are any
+      if (warnings.length > 0) {
+        fileContents.push({
+          path: "_system/warnings.txt",
+          content: "```\n" + warnings.join("\n") + "\n```"
+        });
       }
       
       return { fileMapStr, fileContents };
