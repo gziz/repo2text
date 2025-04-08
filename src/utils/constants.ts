@@ -107,6 +107,9 @@ export const BYTES_PER_KB = 1024;
 export const BYTES_PER_MB = BYTES_PER_KB * 1024;
 export const PRECISION_FACTOR = 100; // For rounding to 2 decimal places
 
+/** Cache constants */
+export const TOKEN_CACHE_INVALIDATION_MS = 300000; // 5 minutes in milliseconds
+
 /** Configuration keys */
 export const CONFIG_KEYS = {
   EXCLUDE_HIDDEN_DIRS: 'excludeHiddenDirectories',
