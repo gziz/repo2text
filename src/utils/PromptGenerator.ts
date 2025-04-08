@@ -250,16 +250,15 @@ export class PromptGenerator {
       : templates.editorTemplate;
     
     // Convert file contents to string format using template
-    let fileContentsStr = '';
-    for (const file of fileContents) {
-      // Use templates.fileTemplate
-      const fileVars = {
-        filePath: file.path,
-        fileContent: file.content
-      };
-      
-      fileContentsStr += TemplateManager.formatTemplate(templates.fileTemplate, fileVars);
-    }
+    const fileContentsStr = fileContents
+      .map(file => {
+        const fileVars = {
+          filePath: file.path,
+          fileContent: file.content
+        };
+        return TemplateManager.formatTemplate(templates.fileTemplate, fileVars);
+      })
+      .join('');
     
     // Format the main template
     const variables = {
