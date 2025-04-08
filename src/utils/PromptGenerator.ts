@@ -195,6 +195,9 @@ export class PromptGenerator {
     }
 
     try {
+      // Convert to relative path once - use this consistently throughout the method
+      const relativePath = vscode.workspace.asRelativePath(filePath);
+      
       // Get maximum file size from configuration manager
       const maxFileSizeMB = this._configManager.maxFileSizeMB;
       const maxFileSize = maxFileSizeMB * BYTES_PER_MB; // Convert MB to bytes
@@ -203,7 +206,7 @@ export class PromptGenerator {
       const fileStat = await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
       if (fileStat.size > maxFileSize) {
         fileContents.push({
-          path: vscode.workspace.asRelativePath(filePath),
+          path: relativePath,
           content: `\`\`\`\nFile too large (${Math.round(fileStat.size / BYTES_PER_MB * PRECISION_FACTOR) / PRECISION_FACTOR}MB). Max size: ${maxFileSizeMB}MB\n\`\`\``
         });
         processedPaths.add(filePath);
@@ -213,7 +216,6 @@ export class PromptGenerator {
       const content = await this._fileManager.readFile(filePath);
       // Get file extension for syntax highlighting in code blocks
       const extension = path.extname(filePath).slice(1);
-      const relativePath = vscode.workspace.asRelativePath(filePath);
       
       fileContents.push({
         path: relativePath,
@@ -224,8 +226,10 @@ export class PromptGenerator {
       processedPaths.add(filePath);
     } catch (error) {
       console.error(`Error reading file ${filePath}:`, error);
+      // Also convert error file paths to relative format for consistency
+      const relativePath = vscode.workspace.asRelativePath(filePath);
       fileContents.push({
-        path: filePath,
+        path: relativePath,
         content: '```\nError reading file\n```'
       });
       
